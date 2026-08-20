@@ -23,19 +23,21 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    My memory tray is polished and ready for tasks.
    What can I do for you?
    ==============================
-   read book
-   added: read book
-   Wobble note: safely tucked into the memory tray!
-   return book
-   added: return book
-   Wobble note: safely tucked into the memory tray!
+   todo read book
+   Got it. I've added this task:
+     [T][ ] read book
+   Now you have 1 tasks in the list.
+   deadline return book /by Sunday
+   Got it. I've added this task:
+     [D][ ] return book (by: Sunday)
+   Now you have 2 tasks in the list.
    list
    Scanning my task tray... beep!
-   1. read book
-   2. return book
+   1.[T][ ] read book
+   2.[D][ ] return book (by: Sunday)
    mark 2
    Nice! I've marked this task as done:
-     [X] return book
+     [D][X] return book (by: Sunday)
    bye
    Bye. Hope to see you again soon!
    Wobble powering down... beep!
