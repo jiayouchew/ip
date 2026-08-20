@@ -20,36 +20,46 @@ Example output:
 
 ```
 ==============================
-  WOBBL-E // systems online
+  WOBBL-E // Systems Online
 ==============================
 Hello! I'm Wobble.
 Beep boop! Your friendly little robot companion is ready.
 What can I do for you?
 ==============================
 My memory tray is polished and ready for tasks.
-read book
-added: read book
-Wobble note: safely tucked into the memory tray!
-return book
-Got it. I've added this task:
-  [T][ ] return book
+todo read book
+Beep boop! Got it. I've added this task to my memory tray:
+  [T][ ] read book
+Now you have 1 tasks in the list.
+deadline return book /by Sunday
+Beep boop! Got it. I've added this task to my memory tray:
+  [D][ ] return book (by: Sunday)
 Now you have 2 tasks in the list.
 list
-Scanning my task tray... beep!
+Scanning my task tray... whirr, beep!
 1.[T][ ] read book
-2.[T][ ] return book
+2.[D][ ] return book (by: Sunday)
 mark 2
 Nice! I've marked this task as done:
-  [T][X] return book
+  [D][X] return book (by: Sunday)
 list
-Scanning my task tray... beep!
+Scanning my task tray... whirr, beep!
 1.[T][ ] read book
-2.[T][X] return book
+2.[D][X] return book (by: Sunday)
 unmark 2
 OK, I've marked this task as not done yet:
-  [ ] return book
+  [D][ ] return book (by: Sunday)
 bye
 Bye. Hope to see you again soon!
 Wobble powering down... beep!
 ==============================
+```
+
+Invalid commands receive a specific diagnostic without changing the task list:
+
+```
+todo
+Wobble diagnostic: a todo description cannot be empty.
+blah
+Wobble diagnostic: I do not know that command. Try todo, deadline, event, list, mark, or bye.
 ```

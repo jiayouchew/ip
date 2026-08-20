@@ -16,7 +16,7 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 1. After that, locate the `src/main/java/Wobble.java` file, right-click it, and choose `Run Wobble.main()` (if the code editor is showing compile errors, try restarting the IDE). Type tasks into the console; Wobble stores them, displays them with `list`, lets you use `mark <number>` and `unmark <number>`, and exits when you type `bye`.
    ```
    ==============================
-     WOBBL-E // systems online
+     WOBBL-E // Systems Online
    ==============================
    Hello! I'm Wobble.
    Beep boop! Your friendly little robot companion is ready.
@@ -24,15 +24,15 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    What can I do for you?
    ==============================
    todo read book
-   Got it. I've added this task:
+   Beep boop! Got it. I've added this task to my memory tray:
      [T][ ] read book
    Now you have 1 tasks in the list.
    deadline return book /by Sunday
-   Got it. I've added this task:
+   Beep boop! Got it. I've added this task to my memory tray:
      [D][ ] return book (by: Sunday)
    Now you have 2 tasks in the list.
    list
-   Scanning my task tray... beep!
+   Scanning my task tray... whirr, beep!
    1.[T][ ] read book
    2.[D][ ] return book (by: Sunday)
    mark 2
@@ -42,6 +42,15 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    Bye. Hope to see you again soon!
    Wobble powering down... beep!
    ==============================
+   ```
+
+   Invalid commands receive a diagnostic message without changing the task list:
+
+   ```
+   todo
+   Wobble diagnostic: a todo description cannot be empty.
+   blah
+   Wobble diagnostic: I do not know that command. Try todo, deadline, event, list, mark, or bye.
    ```
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
