@@ -10,7 +10,8 @@ After starting, type a task and press Enter. Wobble stores it and confirms that 
 Type `todo <description>` to add a ToDo, `deadline <description> /by <date>` to add a
 Deadline, or `event <description> /from <start> /to <end>` to add an Event.
 Type `list` to display all stored tasks, `mark <number>` to mark a task as done, and
-`unmark <number>` to mark it as unfinished again. Type `bye` to exit.
+`unmark <number>` to mark it as unfinished again. Use `delete <number>` to remove a task.
+Type `bye` to exit.
 
 Wobble gives specific, robot-themed error messages for empty descriptions, malformed dates or times,
 unknown commands, invalid task numbers, and a full task tray. Invalid commands do not
@@ -49,6 +50,10 @@ Scanning my task tray... whirr, beep!
 unmark 2
 OK, I've marked this task as not done yet:
   [D][ ] return book (by: Sunday)
+delete 2
+Noted. I've removed this task:
+  [D][ ] return book (by: Sunday)
+Now you have 1 tasks in the list.
 bye
 Bye. Hope to see you again soon!
 Wobble powering down... beep!
@@ -61,5 +66,5 @@ Invalid commands receive a specific diagnostic without changing the task list:
 todo
 Wobble diagnostic: a todo description cannot be empty.
 blah
-Wobble diagnostic: I do not know that command. Try todo, deadline, event, list, mark, or bye.
+Wobble diagnostic: I do not know that command. Try todo, deadline, event, list, mark, unmark, delete, or bye.
 ```

@@ -33,6 +33,12 @@ public class Wobble {
                     Task task = taskList.get(i);
                     System.out.println(i + "." + task);
                 }
+            } else if (command.equals("delete") || command.startsWith("delete ")) {
+                try {
+                    handleDeleteCommand(command, taskList);
+                } catch (WobbleException exception) {
+                    System.out.println("Wobble diagnostic: " + exception.getMessage());
+                }
             } else if (command.equals("mark") || command.startsWith("mark ")
                     || command.equals("unmark") || command.startsWith("unmark ")) {
                 try {
@@ -43,13 +49,10 @@ public class Wobble {
             } else {
                 try {
                     Task task = createTask(command);
-                    if (taskList.add(task)) {
-                        System.out.println("Beep boop! Got it. I've added this task to my memory tray:");
-                        System.out.println("  " + task);
-                        System.out.println("Now you have " + taskList.size() + " tasks in the list.");
-                    } else {
-                        System.out.println("Wobble alert: my task tray is full! Beep boop!");
-                    }
+                    taskList.add(task);
+                    System.out.println("Beep boop! Got it. I've added this task to my memory tray:");
+                    System.out.println("  " + task);
+                    System.out.println("Now you have " + taskList.size() + " tasks in the list.");
                 } catch (WobbleException exception) {
                     System.out.println("Wobble diagnostic: " + exception.getMessage());
                 }
@@ -96,7 +99,26 @@ public class Wobble {
             }
             return new Event(description, from, to);
         }
-        throw new WobbleException("I do not know that command. Try todo, deadline, event, list, mark, or bye.");
+        throw new WobbleException("I do not know that command. Try todo, deadline, event, list, mark, unmark, delete, or bye.");
+    }
+
+    /** Deletes the task referred to by a delete command. */
+    private static void handleDeleteCommand(String command, TaskList taskList) throws WobbleException {
+        String[] parts = command.trim().split("\\s+");
+        if (parts.length != 2) {
+            throw new WobbleException("please use delete <number>, for example: delete 2");
+        }
+        try {
+            Task removedTask = taskList.delete(Integer.parseInt(parts[1]));
+            if (removedTask == null) {
+                throw new WobbleException("that task number is off my radar. Your task list is unchanged.");
+            }
+            System.out.println("Noted. I've removed this task:");
+            System.out.println("  " + removedTask);
+            System.out.println("Now you have " + taskList.size() + " tasks in the list.");
+        } catch (NumberFormatException exception) {
+            throw new WobbleException("task numbers must be numbers, for example: delete 2");
+        }
     }
 
     /** Marks or unmarks the task referred to by a status command. */
