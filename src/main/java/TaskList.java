@@ -4,12 +4,12 @@ public class TaskList {
     private final Task[] tasks = new Task[MAX_TASKS];
     private int taskCount;
 
-    /** Adds a new unfinished task and returns whether there was space for it. */
-    public boolean add(String description) {
+    /** Adds a task and returns whether there was space for it. */
+    public boolean add(Task task) {
         if (taskCount >= MAX_TASKS) {
             return false;
         }
-        tasks[taskCount] = new Task(description);
+        tasks[taskCount] = task;
         taskCount++;
         return true;
     }

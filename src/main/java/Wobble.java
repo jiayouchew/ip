@@ -31,19 +31,48 @@ public class Wobble {
                 }
                 for (int i = 1; i <= taskList.size(); i++) {
                     Task task = taskList.get(i);
-                    System.out.println(i + ".[" + task.getStatusIcon() + "] "
-                            + task.getDescription());
+                    System.out.println(i + "." + task);
                 }
             } else if (command.startsWith("mark ") || command.startsWith("unmark ")) {
                 handleStatusCommand(command, taskList);
-            } else if (taskList.add(command)) {
-                System.out.println("added: " + command);
-                System.out.println("Wobble note: safely tucked into the memory tray!");
             } else {
-                System.out.println("Wobble alert: my task tray is full! Beep boop!");
+                Task task = createTask(command);
+                if (task != null && taskList.add(task)) {
+                    System.out.println("Got it. I've added this task:");
+                    System.out.println("  " + task);
+                    System.out.println("Now you have " + taskList.size() + " tasks in the list.");
+                } else if (task == null) {
+                    System.out.println("Wobble needs a task description and its date details. Beep?");
+                } else {
+                    System.out.println("Wobble alert: my task tray is full! Beep boop!");
+                }
             }
         }
         scanner.close();
+    }
+
+    /** Converts a command into the appropriate task subtype. */
+    private static Task createTask(String command) {
+        if (command.startsWith("todo ")) {
+            return new Todo(command.substring(5));
+        }
+        if (command.startsWith("deadline ")) {
+            int separator = command.indexOf(" /by ");
+            if (separator < 0) {
+                return null;
+            }
+            return new Deadline(command.substring(9, separator), command.substring(separator + 5));
+        }
+        if (command.startsWith("event ")) {
+            int fromSeparator = command.indexOf(" /from ");
+            int toSeparator = command.indexOf(" /to ");
+            if (fromSeparator < 0 || toSeparator < 0 || fromSeparator >= toSeparator) {
+                return null;
+            }
+            return new Event(command.substring(6, fromSeparator),
+                    command.substring(fromSeparator + 7, toSeparator), command.substring(toSeparator + 5));
+        }
+        return new Todo(command);
     }
 
     /** Marks or unmarks the task referred to by a status command. */
@@ -70,7 +99,7 @@ public class Wobble {
                 task.markAsNotDone();
                 System.out.println("OK, I've marked this task as not done yet:");
             }
-            System.out.println("  [" + task.getStatusIcon() + "] " + task.getDescription());
+            System.out.println("  " + task);
         } catch (NumberFormatException exception) {
             System.out.println("Wobble needs a number, for example: mark 2");
         }

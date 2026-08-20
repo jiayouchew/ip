@@ -28,4 +28,10 @@ public class Task {
     public String getDescription() {
         return description;
     }
+
+    /** Returns the common status portion of a task's display text. */
+    @Override
+    public String toString() {
+        return "[" + getStatusIcon() + "] " + description;
+    }
 }
