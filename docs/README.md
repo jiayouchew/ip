@@ -2,6 +2,8 @@
 
 Wobble is a friendly little robot chatbot that stores tasks in its memory tray, tracks completion, and exits when you type `bye`.
 
+Internally, Wobble uses the `TaskType` enum to identify ToDos, Deadlines, and Events.
+
 ## Starting Wobble
 
 Run `Wobble.main()` from `src/main/java/Wobble.java`.
