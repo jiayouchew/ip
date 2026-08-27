@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.time.LocalDate;
 
 /** A small chatbot that stores tasks for the current session. */
 public class Wobble {
@@ -31,7 +32,13 @@ public class Wobble {
                 break;
             }
 
-            if (command.equals("list")) {
+            if (command.equals("due on") || command.startsWith("due on ")) {
+                try {
+                    handleDateCommand(command, taskList);
+                } catch (WobbleException exception) {
+                    System.out.println("Wobble diagnostic: " + exception.getMessage());
+                }
+            } else if (command.equals("list")) {
                 System.out.println("Scanning my task tray... whirr, beep!");
                 if (taskList.size() == 0) {
                     System.out.println("Nothing is wobbling on the tray yet. A very tidy tray!");
@@ -77,6 +84,37 @@ public class Wobble {
         scanner.close();
     }
 
+    /** Displays deadlines and events that occur on a requested date. */
+    private static void handleDateCommand(String command, TaskList taskList) throws WobbleException {
+        String dateText = command.length() > 7 ? command.substring(7).trim() : "";
+        if (dateText.isEmpty()) {
+            throw new WobbleException("please use due on <date>, for example: due on 2019-12-02");
+        }
+        LocalDate date;
+        try {
+            date = DateTimeParser.parse(dateText).toLocalDate();
+        } catch (java.time.format.DateTimeParseException exception) {
+            throw new WobbleException("the date must use yyyy-MM-dd, yyyy.MM.dd, or yyyy/MM/dd.");
+        }
+        int matches = 0;
+        for (int i = 1; i <= taskList.size(); i++) {
+            Task task = taskList.get(i);
+            boolean occursOnDate = task instanceof Deadline deadline
+                    && deadline.getBy().toLocalDate().equals(date);
+            if (task instanceof Event event) {
+                occursOnDate = !date.isBefore(event.getFrom().toLocalDate())
+                        && !date.isAfter(event.getTo().toLocalDate());
+            }
+            if (occursOnDate) {
+                System.out.println(i + "." + task);
+                matches++;
+            }
+        }
+        if (matches == 0) {
+            System.out.println("No deadlines or events are wobbling on that date.");
+        }
+    }
+
     /** Converts a command into the appropriate task subtype. */
     private static Task createTask(String command) throws WobbleException {
         if (command.isBlank()) {
@@ -99,7 +137,11 @@ public class Wobble {
             if (description.isEmpty() || by.isEmpty()) {
                 throw new WobbleException("a deadline needs both a description and a /by date");
             }
-            return new Deadline(description, by);
+            try {
+                return new Deadline(description, DateTimeParser.parse(by));
+            } catch (java.time.format.DateTimeParseException exception) {
+                throw new WobbleException("the deadline date must use yyyy-MM-dd or yyyy-MM-dd HHmm");
+            }
         }
         if (command.equals("event") || command.startsWith("event ")) {
             int fromSeparator = command.indexOf(" /from ");
@@ -113,9 +155,14 @@ public class Wobble {
             if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
                 throw new WobbleException("an event needs a description, a /from time, and a /to time");
             }
-            return new Event(description, from, to);
+            try {
+                return new Event(description, DateTimeParser.parse(from), DateTimeParser.parse(to));
+            } catch (java.time.format.DateTimeParseException exception) {
+                throw new WobbleException("event dates must use yyyy-MM-dd or yyyy-MM-dd HHmm");
+            }
         }
-        throw new WobbleException("I do not know that command. Try todo, deadline, event, list, mark, unmark, delete, or bye.");
+        throw new WobbleException("I do not know that command. Try todo, deadline, event, list, mark, unmark, delete," +
+                " due on, or bye.");
     }
 
     /** Deletes the task referred to by a delete command. */
