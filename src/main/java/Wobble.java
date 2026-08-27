@@ -1,4 +1,3 @@
-import java.time.LocalDate;
 import java.util.Scanner;
 
 /** A small chatbot that stores tasks for the current session. */
@@ -8,6 +7,7 @@ public class Wobble {
         ui.showWelcome();
 
         Storage storage = new Storage();
+        Parser parser = new Parser();
         TaskList taskList;
         try {
             taskList = storage.load();
@@ -26,7 +26,7 @@ public class Wobble {
 
             if (command.equals("due on") || command.startsWith("due on ")) {
                 try {
-                    handleDateCommand(command, taskList);
+                    handleDateCommand(command, taskList, parser);
                 } catch (WobbleException exception) {
                     System.out.println("Wobble diagnostic: " + exception.getMessage());
                 }
@@ -53,7 +53,7 @@ public class Wobble {
                 }
             } else {
                 try {
-                    Task task = createTask(command);
+                    Task task = parser.parseTask(command);
                     taskList.add(task);
                     storage.save(taskList);
                     ui.showTaskAdded(task, taskList.size());
@@ -68,17 +68,8 @@ public class Wobble {
     }
 
     /** Displays deadlines and events that occur on a requested date. */
-    private static void handleDateCommand(String command, TaskList taskList) throws WobbleException {
-        String dateText = command.length() > 7 ? command.substring(7).trim() : "";
-        if (dateText.isEmpty()) {
-            throw new WobbleException("please use due on <date>, for example: due on 2019-12-02");
-        }
-        LocalDate date;
-        try {
-            date = DateTimeParser.parse(dateText).toLocalDate();
-        } catch (java.time.format.DateTimeParseException exception) {
-            throw new WobbleException("the date must use yyyy-MM-dd, yyyy.MM.dd, or yyyy/MM/dd.");
-        }
+    private static void handleDateCommand(String command, TaskList taskList, Parser parser) throws WobbleException {
+        java.time.LocalDate date = parser.parseDueDate(command);
         int matches = 0;
         for (int i = 1; i <= taskList.size(); i++) {
             Task task = taskList.get(i);
@@ -96,56 +87,6 @@ public class Wobble {
         if (matches == 0) {
             System.out.println("No deadlines or events are wobbling on that date.");
         }
-    }
-
-    /** Converts a command into the appropriate task subtype. */
-    private static Task createTask(String command) throws WobbleException {
-        if (command.isBlank()) {
-            throw new WobbleException("a task command cannot be empty.");
-        }
-        if (command.equals("todo") || command.startsWith("todo ")) {
-            String description = command.length() > 4 ? command.substring(4).trim() : "";
-            if (description.isEmpty()) {
-                throw new WobbleException("a todo description cannot be empty.");
-            }
-            return new Todo(description);
-        }
-        if (command.equals("deadline") || command.startsWith("deadline ")) {
-            int separator = command.indexOf(" /by ");
-            if (separator < 0) {
-                throw new WobbleException("a deadline must use: deadline <description> /by <date>");
-            }
-            String description = command.substring(9, separator).trim();
-            String by = command.substring(separator + 5).trim();
-            if (description.isEmpty() || by.isEmpty()) {
-                throw new WobbleException("a deadline needs both a description and a /by date");
-            }
-            try {
-                return new Deadline(description, DateTimeParser.parse(by));
-            } catch (java.time.format.DateTimeParseException exception) {
-                throw new WobbleException("the deadline date must use yyyy-MM-dd or yyyy-MM-dd HHmm");
-            }
-        }
-        if (command.equals("event") || command.startsWith("event ")) {
-            int fromSeparator = command.indexOf(" /from ");
-            int toSeparator = command.indexOf(" /to ");
-            if (fromSeparator < 0 || toSeparator < 0 || fromSeparator >= toSeparator) {
-                throw new WobbleException("an event must use: event <description> /from <start> /to <end>");
-            }
-            String description = command.substring(6, fromSeparator).trim();
-            String from = command.substring(fromSeparator + 7, toSeparator).trim();
-            String to = command.substring(toSeparator + 5).trim();
-            if (description.isEmpty() || from.isEmpty() || to.isEmpty()) {
-                throw new WobbleException("an event needs a description, a /from time, and a /to time");
-            }
-            try {
-                return new Event(description, DateTimeParser.parse(from), DateTimeParser.parse(to));
-            } catch (java.time.format.DateTimeParseException exception) {
-                throw new WobbleException("event dates must use yyyy-MM-dd or yyyy-MM-dd HHmm");
-            }
-        }
-        throw new WobbleException("I do not know that command. Try todo, deadline, event, list, mark, unmark, delete," +
-                " due on, or bye.");
     }
 
     /** Deletes the task referred to by a delete command. */
