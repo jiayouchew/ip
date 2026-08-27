@@ -12,7 +12,14 @@ public class Wobble {
         System.out.println("What can I do for you?");
         System.out.println("==============================");
 
-        TaskList taskList = new TaskList();
+        Storage storage = new Storage();
+        TaskList taskList;
+        try {
+            taskList = storage.load();
+        } catch (java.io.IOException exception) {
+            taskList = new TaskList();
+            System.out.println("Wobble diagnostic: saved tasks could not be loaded; starting with an empty tray.");
+        }
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine();
@@ -36,25 +43,34 @@ public class Wobble {
             } else if (command.equals("delete") || command.startsWith("delete ")) {
                 try {
                     handleDeleteCommand(command, taskList);
+                    storage.save(taskList);
                 } catch (WobbleException exception) {
                     System.out.println("Wobble diagnostic: " + exception.getMessage());
+                } catch (java.io.IOException exception) {
+                    System.out.println("Wobble diagnostic: changes could not be saved.");
                 }
             } else if (command.equals("mark") || command.startsWith("mark ")
                     || command.equals("unmark") || command.startsWith("unmark ")) {
                 try {
                     handleStatusCommand(command, taskList);
+                    storage.save(taskList);
                 } catch (WobbleException exception) {
                     System.out.println("Wobble diagnostic: " + exception.getMessage());
+                } catch (java.io.IOException exception) {
+                    System.out.println("Wobble diagnostic: changes could not be saved.");
                 }
             } else {
                 try {
                     Task task = createTask(command);
                     taskList.add(task);
+                    storage.save(taskList);
                     System.out.println("Beep boop! Got it. I've added this task to my memory tray:");
                     System.out.println("  " + task);
                     System.out.println("Now you have " + taskList.size() + " tasks in the list.");
                 } catch (WobbleException exception) {
                     System.out.println("Wobble diagnostic: " + exception.getMessage());
+                } catch (java.io.IOException exception) {
+                    System.out.println("Wobble diagnostic: task could not be saved.");
                 }
             }
         }
