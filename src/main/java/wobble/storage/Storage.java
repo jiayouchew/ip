@@ -1,15 +1,16 @@
 package wobble.storage;
 
-import wobble.tasks.Deadline;
-import wobble.tasks.Event;
-import wobble.tasks.Task;
-import wobble.tasks.TaskList;
-import wobble.tasks.Todo;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+
+import wobble.tasks.Deadline;
+import wobble.tasks.Event;
+import wobble.tasks.Task;
+import wobble.tasks.TaskList;
+import wobble.tasks.Todo;
 
 /** Saves and loads Wobble tasks from a relative data file. */
 public class Storage {
@@ -29,9 +30,13 @@ public class Storage {
     /** Loads saved tasks, skipping malformed records. */
     public TaskList load() throws IOException {
         TaskList taskList = new TaskList();
-        if (!Files.exists(filePath)) return taskList;
+        if (!Files.exists(filePath)) {
+            return taskList;
+        }
         for (String line : Files.readAllLines(filePath)) {
-            if (line.isBlank()) continue;
+            if (line.isBlank()) {
+                continue;
+            }
             try {
                 taskList.add(deserialize(line));
             } catch (IllegalArgumentException exception) {
@@ -43,7 +48,9 @@ public class Storage {
 
     /** Saves all tasks, creating the data folder if necessary. */
     public void save(TaskList taskList) throws IOException {
-        if (filePath.getParent() != null) Files.createDirectories(filePath.getParent());
+        if (filePath.getParent() != null) {
+            Files.createDirectories(filePath.getParent());
+        }
         StringBuilder contents = new StringBuilder();
         for (int i = 1; i <= taskList.size(); i++) {
             contents.append(serialize(taskList.get(i))).append(System.lineSeparator());
@@ -55,7 +62,9 @@ public class Storage {
     private static String serialize(Task task) {
         String line = task.getType() + "|" + (task.isDone() ? "1" : "0")
                 + "|" + encode(task.getDescription());
-        if (task instanceof Deadline deadline) line += "|" + encode(deadline.getBy().toString());
+        if (task instanceof Deadline deadline) {
+            line += "|" + encode(deadline.getBy().toString());
+        }
         if (task instanceof Event event) {
             line += "|" + encode(event.getFrom().toString()) + "|" + encode(event.getTo().toString());
         }
@@ -65,7 +74,9 @@ public class Storage {
     /** Reconstructs one task from a persisted record. */
     private static Task deserialize(String line) {
         String[] fields = line.split("\\|", -1);
-        if (fields.length < 3 || !(fields[1].equals("0") || fields[1].equals("1"))) throw new IllegalArgumentException();
+        if (fields.length < 3 || !(fields[1].equals("0") || fields[1].equals("1"))) {
+            throw new IllegalArgumentException();
+        }
         Task task = switch (fields[0]) {
             case "TODO" -> fields.length == 3 ? new Todo(decode(fields[2])) : null;
             case "DEADLINE" -> fields.length == 4
@@ -75,7 +86,9 @@ public class Storage {
                     java.time.LocalDateTime.parse(decode(fields[4]))) : null;
             default -> null;
         };
-        if (task == null) throw new IllegalArgumentException();
+        if (task == null) {
+            throw new IllegalArgumentException();
+        }
         if (fields[1].equals("1")) task.markAsDone();
         return task;
     }

@@ -16,7 +16,8 @@ class TaskSubtypeTest {
     @Test
     void deadline_toString_includesFormattedDeadline() {
         Deadline deadline = new Deadline("submit report", LocalDateTime.of(2026, 8, 27, 18, 0));
-        assertEquals("Aug 27 2026 6:00 pm", deadline.getBy().format(java.time.format.DateTimeFormatter.ofPattern("MMM d yyyy h:mm a")));
+        assertEquals("Aug 27 2026 6:00 pm",
+                deadline.getBy().format(java.time.format.DateTimeFormatter.ofPattern("MMM d yyyy h:mm a")));
         assertEquals("[D][ ] submit report (by: Aug 27 2026 6:00 pm)", deadline.toString());
     }
 

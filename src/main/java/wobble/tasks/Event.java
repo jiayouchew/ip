@@ -1,7 +1,8 @@
 package wobble.tasks;
 
-import wobble.parser.DateTimeParser;
 import java.time.LocalDateTime;
+
+import wobble.parser.DateTimeParser;
 
 /** A task that takes place between a stated start and end time. */
 public class Event extends Task {

@@ -1,5 +1,8 @@
 package wobble;
 
+import java.time.LocalDate;
+import java.util.Scanner;
+
 import wobble.exceptions.WobbleException;
 import wobble.parser.Parser;
 import wobble.storage.Storage;
@@ -8,7 +11,6 @@ import wobble.tasks.Event;
 import wobble.tasks.Task;
 import wobble.tasks.TaskList;
 import wobble.ui.Ui;
-import java.util.Scanner;
 
 /** A small chatbot that stores tasks for the current session. */
 public class Wobble {
@@ -80,7 +82,7 @@ public class Wobble {
 
     /** Displays deadlines and events that occur on a requested date. */
     private static void handleDateCommand(String command, TaskList taskList, Parser parser) throws WobbleException {
-        java.time.LocalDate date = parser.parseDueDate(command);
+        LocalDate date = parser.parseDueDate(command);
         int matches = 0;
         for (int i = 1; i <= taskList.size(); i++) {
             Task task = taskList.get(i);

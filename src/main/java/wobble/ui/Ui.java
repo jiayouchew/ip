@@ -1,8 +1,9 @@
 package wobble.ui;
 
+import java.util.Scanner;
+
 import wobble.tasks.Task;
 import wobble.tasks.TaskList;
-import java.util.Scanner;
 
 /** Handles all interaction between Wobble and the user. */
 public class Ui {

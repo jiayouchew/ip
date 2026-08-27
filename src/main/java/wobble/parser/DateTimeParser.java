@@ -20,7 +20,8 @@ public final class DateTimeParser {
     private static final DateTimeFormatter DATE_OUTPUT = DateTimeFormatter.ofPattern("MMM d yyyy");
     private static final DateTimeFormatter TIME_OUTPUT = DateTimeFormatter.ofPattern("MMM d yyyy h:mm a");
 
-    private DateTimeParser() { }
+    private DateTimeParser() {
+    }
 
     /** Parses a date or date/time string into a LocalDateTime. */
     public static LocalDateTime parse(String value) {
