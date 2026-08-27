@@ -48,7 +48,10 @@ jar {
 }
 
 shadowJar {
-    archiveFileName = 'duke.jar'
+    archiveFileName = 'wobble.jar'
+    manifest {
+        attributes 'Main-Class': 'wobble.Wobble'
+    }
 }
 
 run {

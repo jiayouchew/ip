@@ -13,7 +13,7 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    1. If there are any further prompts, accept the defaults.
 1. Configure the project to use **JDK 25** (not other versions) as explained in [here](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).<br>
    In the same dialog, set the **Project language level** field to the `SDK default` option.
-   1. After that, locate the `src/main/java/Wobble.java` file, right-click it, and choose `Run Wobble.main()` (if the code editor is showing compile errors, try restarting the IDE). Type tasks into the console; Wobble stores them, displays them with `list`, lets you use `mark <number>`, `unmark <number>`, `delete <number>`, and `due on <date>`, and exits when you type `bye`.
+1. After that, locate the `src/main/java/wobble/Wobble.java` file, right-click it, and choose `Run wobble.Wobble.main()` (if the code editor is showing compile errors, try restarting the IDE). Type tasks into the console; Wobble stores them, displays them with `list`, lets you use `mark <number>`, `unmark <number>`, `delete <number>`, and `due on <date>`, and exits when you type `bye`.
 
    Wobble saves tasks automatically to the relative file `data/wobble.txt` and loads them
    again the next time it starts. The `data` folder is created automatically if needed.
@@ -61,3 +61,20 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    ```
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
+
+## Creating and running a fat JAR
+
+From the project root, create the executable fat JAR with:
+
+```bash
+./gradlew shadowJar
+```
+
+The output is created at `build/libs/wobble.jar`. Run it with:
+
+```bash
+java -jar build/libs/wobble.jar
+```
+
+The JAR includes the application classes and runtime dependencies, and its entry point
+is configured as `wobble.Wobble`.

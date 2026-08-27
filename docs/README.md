@@ -6,7 +6,7 @@ Internally, Wobble uses the `TaskType` enum to identify ToDos, Deadlines, and Ev
 
 ## Starting Wobble
 
-Run `Wobble.main()` from `src/main/java/Wobble.java`.
+Run `wobble.Wobble.main()` from `src/main/java/wobble/Wobble.java`, or run the executable JAR described below.
 
 After starting, type a task and press Enter. Wobble stores it and confirms that it was added.
 Type `todo <description>` to add a ToDo, `deadline <description> /by <date>` to add a
@@ -79,4 +79,18 @@ todo
 Wobble diagnostic: a todo description cannot be empty.
 blah
 Wobble diagnostic: I do not know that command. Try todo, deadline, event, list, mark, unmark, delete, or bye.
+```
+
+## Creating and running the fat JAR
+
+From the project root, run:
+
+```bash
+./gradlew shadowJar
+```
+
+The executable fat JAR will be at `build/libs/wobble.jar`. Start it with:
+
+```bash
+java -jar build/libs/wobble.jar
 ```
