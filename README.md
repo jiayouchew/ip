@@ -13,7 +13,10 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    1. If there are any further prompts, accept the defaults.
 1. Configure the project to use **JDK 25** (not other versions) as explained in [here](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).<br>
    In the same dialog, set the **Project language level** field to the `SDK default` option.
-1. After that, locate the `src/main/java/Wobble.java` file, right-click it, and choose `Run Wobble.main()` (if the code editor is showing compile errors, try restarting the IDE). Type tasks into the console; Wobble stores them, displays them with `list`, lets you use `mark <number>`, `unmark <number>`, and `delete <number>`, and exits when you type `bye`.
+   1. After that, locate the `src/main/java/Wobble.java` file, right-click it, and choose `Run Wobble.main()` (if the code editor is showing compile errors, try restarting the IDE). Type tasks into the console; Wobble stores them, displays them with `list`, lets you use `mark <number>`, `unmark <number>`, `delete <number>`, and `due on <date>`, and exits when you type `bye`.
+
+   Wobble saves tasks automatically to the relative file `data/wobble.txt` and loads them
+   again the next time it starts. The `data` folder is created automatically if needed.
    ```
    ==============================
      WOBBL-E // Systems Online
@@ -27,20 +30,20 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    Beep boop! Got it. I've added this task to my memory tray:
      [T][ ] read book
    Now you have 1 tasks in the list.
-   deadline return book /by Sunday
+   deadline return book /by 2019-12-02 1800
    Beep boop! Got it. I've added this task to my memory tray:
-     [D][ ] return book (by: Sunday)
+     [D][ ] return book (by: Dec 2 2019 6:00 pm)
    Now you have 2 tasks in the list.
    list
    Scanning my task tray... whirr, beep!
    1.[T][ ] read book
-   2.[D][ ] return book (by: Sunday)
+   2.[D][ ] return book (by: Dec 2 2019 6:00 pm)
    mark 2
    Nice! I've marked this task as done:
-     [D][X] return book (by: Sunday)
+     [D][X] return book (by: Dec 2 2019 6:00 pm)
    delete 2
    Noted. I've removed this task:
-     [D][X] return book (by: Sunday)
+     [D][X] return book (by: Dec 2 2019 6:00 pm)
    Now you have 1 tasks in the list.
    bye
    Bye. Hope to see you again soon!
