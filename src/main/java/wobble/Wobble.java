@@ -43,6 +43,12 @@ public class Wobble {
                 } catch (WobbleException exception) {
                     System.out.println("Wobble diagnostic: " + exception.getMessage());
                 }
+            } else if (command.equals("find") || command.startsWith("find ")) {
+                try {
+                    handleFindCommand(command, taskList, ui);
+                } catch (WobbleException exception) {
+                    ui.showDiagnostic(exception.getMessage());
+                }
             } else if (command.equals("list")) {
                 ui.showTasks(taskList);
             } else if (command.equals("delete") || command.startsWith("delete ")) {
@@ -78,6 +84,15 @@ public class Wobble {
             }
         }
         scanner.close();
+    }
+
+    /** Validates a find command and asks the UI to display matching tasks. */
+    private static void handleFindCommand(String command, TaskList taskList, Ui ui) throws WobbleException {
+        String keyword = command.length() > 4 ? command.substring(4).trim() : "";
+        if (keyword.isEmpty()) {
+            throw new WobbleException("please use find <keyword>, for example: find book");
+        }
+        ui.showMatchingTasks(taskList, keyword);
     }
 
     /** Displays deadlines and events that occur on a requested date. */

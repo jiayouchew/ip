@@ -1,5 +1,6 @@
 package wobble.ui;
 
+import java.util.List;
 import java.util.Scanner;
 
 import wobble.tasks.Task;
@@ -32,6 +33,18 @@ public class Ui {
         }
         for (int i = 1; i <= taskList.size(); i++) {
             System.out.println(i + "." + taskList.get(i));
+        }
+    }
+
+    /** Displays tasks matching a keyword and preserves their original list numbers. */
+    public void showMatchingTasks(TaskList taskList, String keyword) {
+        System.out.println("Here are the matching tasks in your list:");
+        List<Integer> matchingTaskNumbers = taskList.find(keyword);
+        if (matchingTaskNumbers.isEmpty()) {
+            System.out.println("No tasks match that keyword. Wobble searched everywhere!");
+        }
+        for (int taskNumber : matchingTaskNumbers) {
+            System.out.println(taskNumber + "." + taskList.get(taskNumber));
         }
     }
 

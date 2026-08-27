@@ -17,6 +17,7 @@ and are displayed in a friendlier format such as `Dec 2 2019 6:00 pm`.
 Type `list` to display all stored tasks, `mark <number>` to mark a task as done, and
 `unmark <number>` to mark it as unfinished again. Use `delete <number>` to remove a task.
 Use `due on <date>` to display deadlines on that date and events spanning that date.
+Use `find <keyword>` to search task descriptions case-insensitively.
 Type `bye` to exit.
 
 Tasks are saved automatically in the relative file `data/wobble.txt` whenever the list
@@ -55,6 +56,10 @@ Nice! I've marked this task as done:
   [D][X] return book (by: Dec 2 2019 6:00 pm)
 list
 Scanning my task tray... whirr, beep!
+1.[T][ ] read book
+2.[D][X] return book (by: Dec 2 2019 6:00 pm)
+find book
+Here are the matching tasks in your list:
 1.[T][ ] read book
 2.[D][X] return book (by: Dec 2 2019 6:00 pm)
 unmark 2
