@@ -13,13 +13,24 @@ import java.util.Base64;
 
 /** Saves and loads Wobble tasks from a relative data file. */
 public class Storage {
-    private static final Path FILE_PATH = Path.of("data", "wobble.txt");
+    private static final Path DEFAULT_FILE_PATH = Path.of("data", "wobble.txt");
+    private final Path filePath;
+
+    /** Creates storage using Wobble's default relative data file. */
+    public Storage() {
+        this(DEFAULT_FILE_PATH);
+    }
+
+    /** Creates storage using a caller-provided path, useful for isolated tests. */
+    public Storage(Path filePath) {
+        this.filePath = filePath;
+    }
 
     /** Loads saved tasks, skipping malformed records. */
     public TaskList load() throws IOException {
         TaskList taskList = new TaskList();
-        if (!Files.exists(FILE_PATH)) return taskList;
-        for (String line : Files.readAllLines(FILE_PATH)) {
+        if (!Files.exists(filePath)) return taskList;
+        for (String line : Files.readAllLines(filePath)) {
             if (line.isBlank()) continue;
             try {
                 taskList.add(deserialize(line));
@@ -32,12 +43,12 @@ public class Storage {
 
     /** Saves all tasks, creating the data folder if necessary. */
     public void save(TaskList taskList) throws IOException {
-        Files.createDirectories(FILE_PATH.getParent());
+        if (filePath.getParent() != null) Files.createDirectories(filePath.getParent());
         StringBuilder contents = new StringBuilder();
         for (int i = 1; i <= taskList.size(); i++) {
             contents.append(serialize(taskList.get(i))).append(System.lineSeparator());
         }
-        Files.writeString(FILE_PATH, contents.toString(), StandardCharsets.UTF_8);
+        Files.writeString(filePath, contents.toString(), StandardCharsets.UTF_8);
     }
 
     private static String serialize(Task task) {
