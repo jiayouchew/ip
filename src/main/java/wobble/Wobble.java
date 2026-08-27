@@ -12,6 +12,7 @@ import java.util.Scanner;
 
 /** A small chatbot that stores tasks for the current session. */
 public class Wobble {
+    /** Starts the chatbot and processes commands until the user exits. */
     public static void main(String[] args) {
         Ui ui = new Ui();
         ui.showWelcome();

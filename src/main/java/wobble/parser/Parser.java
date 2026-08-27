@@ -9,6 +9,10 @@ import java.time.LocalDate;
 
 /** Interprets user command text and creates the corresponding task data. */
 public class Parser {
+    /** Creates a parser for Wobble commands. */
+    public Parser() {
+    }
+
     /** Converts an add command into the appropriate task subtype. */
     public Task parseTask(String command) throws WobbleException {
         if (command.isBlank()) throw new WobbleException("a task command cannot be empty.");

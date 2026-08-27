@@ -8,6 +8,7 @@ public enum TaskType {
 
     private final String icon;
 
+    /** Associates a display icon with the task type. */
     TaskType(String icon) {
         this.icon = icon;
     }

@@ -51,6 +51,7 @@ public class Storage {
         Files.writeString(filePath, contents.toString(), StandardCharsets.UTF_8);
     }
 
+    /** Converts one task into the pipe-delimited persistence format. */
     private static String serialize(Task task) {
         String line = task.getType() + "|" + (task.isDone() ? "1" : "0")
                 + "|" + encode(task.getDescription());
@@ -61,6 +62,7 @@ public class Storage {
         return line;
     }
 
+    /** Reconstructs one task from a persisted record. */
     private static Task deserialize(String line) {
         String[] fields = line.split("\\|", -1);
         if (fields.length < 3 || !(fields[1].equals("0") || fields[1].equals("1"))) throw new IllegalArgumentException();
@@ -78,10 +80,12 @@ public class Storage {
         return task;
     }
 
+    /** Encodes text so delimiters and special characters are safe in a record. */
     private static String encode(String value) {
         return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
     }
 
+    /** Decodes text previously written by {@link #encode(String)}. */
     private static String decode(String value) {
         return new String(Base64.getDecoder().decode(value), StandardCharsets.UTF_8);
     }
