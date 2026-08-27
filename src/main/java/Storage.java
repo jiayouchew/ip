@@ -36,8 +36,10 @@ public class Storage {
     private static String serialize(Task task) {
         String line = task.getType() + "|" + (task.isDone() ? "1" : "0")
                 + "|" + encode(task.getDescription());
-        if (task instanceof Deadline deadline) line += "|" + encode(deadline.getBy());
-        if (task instanceof Event event) line += "|" + encode(event.getFrom()) + "|" + encode(event.getTo());
+        if (task instanceof Deadline deadline) line += "|" + encode(deadline.getBy().toString());
+        if (task instanceof Event event) {
+            line += "|" + encode(event.getFrom().toString()) + "|" + encode(event.getTo().toString());
+        }
         return line;
     }
 
@@ -46,8 +48,11 @@ public class Storage {
         if (fields.length < 3 || !(fields[1].equals("0") || fields[1].equals("1"))) throw new IllegalArgumentException();
         Task task = switch (fields[0]) {
             case "TODO" -> fields.length == 3 ? new Todo(decode(fields[2])) : null;
-            case "DEADLINE" -> fields.length == 4 ? new Deadline(decode(fields[2]), decode(fields[3])) : null;
-            case "EVENT" -> fields.length == 5 ? new Event(decode(fields[2]), decode(fields[3]), decode(fields[4])) : null;
+            case "DEADLINE" -> fields.length == 4
+                    ? new Deadline(decode(fields[2]), java.time.LocalDateTime.parse(decode(fields[3]))) : null;
+            case "EVENT" -> fields.length == 5
+                    ? new Event(decode(fields[2]), java.time.LocalDateTime.parse(decode(fields[3])),
+                    java.time.LocalDateTime.parse(decode(fields[4]))) : null;
             default -> null;
         };
         if (task == null) throw new IllegalArgumentException();
