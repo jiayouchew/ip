@@ -1,3 +1,10 @@
+package wobble.storage;
+
+import wobble.tasks.Deadline;
+import wobble.tasks.Event;
+import wobble.tasks.Task;
+import wobble.tasks.TaskList;
+import wobble.tasks.Todo;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

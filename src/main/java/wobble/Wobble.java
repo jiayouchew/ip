@@ -1,3 +1,13 @@
+package wobble;
+
+import wobble.exceptions.WobbleException;
+import wobble.parser.Parser;
+import wobble.storage.Storage;
+import wobble.tasks.Deadline;
+import wobble.tasks.Event;
+import wobble.tasks.Task;
+import wobble.tasks.TaskList;
+import wobble.ui.Ui;
 import java.util.Scanner;
 
 /** A small chatbot that stores tasks for the current session. */

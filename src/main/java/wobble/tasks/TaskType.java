@@ -1,3 +1,5 @@
+package wobble.tasks;
+
 /** The kinds of tasks that Wobble can store. */
 public enum TaskType {
     TODO("T"),

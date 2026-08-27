@@ -1,3 +1,5 @@
+package wobble.tasks;
+
 /** Represents one task and whether it has been completed. */
 public class Task {
     private final String description;

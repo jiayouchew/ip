@@ -1,3 +1,10 @@
+package wobble.parser;
+
+import wobble.exceptions.WobbleException;
+import wobble.tasks.Deadline;
+import wobble.tasks.Event;
+import wobble.tasks.Task;
+import wobble.tasks.Todo;
 import java.time.LocalDate;
 
 /** Interprets user command text and creates the corresponding task data. */

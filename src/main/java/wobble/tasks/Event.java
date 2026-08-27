@@ -1,3 +1,6 @@
+package wobble.tasks;
+
+import wobble.parser.DateTimeParser;
 import java.time.LocalDateTime;
 
 /** A task that takes place between a stated start and end time. */
