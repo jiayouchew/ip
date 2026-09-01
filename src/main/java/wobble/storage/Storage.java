@@ -89,7 +89,9 @@ public class Storage {
         if (task == null) {
             throw new IllegalArgumentException();
         }
-        if (fields[1].equals("1")) task.markAsDone();
+        if (fields[1].equals("1")) {
+            task.markAsDone();
+        }
         return task;
     }
 
