@@ -1,0 +1,30 @@
+.root {
+    -fx-font-family: "Avenir Next";
+    -fx-background-color: #f5f1e8;
+}
+
+.text-field {
+    -fx-padding: 10px;
+    -fx-font-size: 14px;
+}
+
+.button {
+    -fx-background-color: #52796f;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.user-message,
+.bot-message {
+    -fx-padding: 10px;
+    -fx-background-radius: 12px;
+    -fx-margin: 8px;
+}
+
+.user-message {
+    -fx-background-color: #cad2c5;
+}
+
+.bot-message {
+    -fx-background-color: #84a98c;
+}

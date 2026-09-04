@@ -54,7 +54,7 @@ test {
 }
 
 application {
-    mainClass.set("wobble.Launcher")
+    mainClass.set("wobble.gui.Launcher")
 }
 
 jar {
@@ -67,7 +67,7 @@ jar {
 shadowJar {
     archiveFileName = 'wobble.jar'
     manifest {
-        attributes 'Main-Class': 'wobble.Launcher'
+        attributes 'Main-Class': 'wobble.gui.Launcher'
     }
 }
 
