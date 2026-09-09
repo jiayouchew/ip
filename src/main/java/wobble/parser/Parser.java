@@ -60,8 +60,7 @@ public class Parser {
                 throw new WobbleException("event dates must use yyyy-MM-dd or yyyy-MM-dd HHmm");
             }
         }
-        throw new WobbleException("I do not know that command. Try todo, deadline, event, list, mark, "
-                + "unmark, delete, due on, or bye.");
+        throw new WobbleException("I do not know that command. Type help to see the available commands.");
     }
 
     /** Parses a date used by the due-on command. */
@@ -74,6 +73,26 @@ public class Parser {
             return DateTimeParser.parse(dateText).toLocalDate();
         } catch (java.time.format.DateTimeParseException exception) {
             throw new WobbleException("the date must use yyyy-MM-dd, yyyy.MM.dd, or yyyy/MM/dd.");
+        }
+    }
+
+    /** Parses the optional day range used by the reminders command. */
+    public int parseReminderDays(String command) throws WobbleException {
+        String[] parts = command.trim().split("\\s+");
+        if (parts.length == 1) {
+            return 7;
+        }
+        if (parts.length != 2) {
+            throw new WobbleException("please use reminders or reminders <number of days>");
+        }
+        try {
+            int days = Integer.parseInt(parts[1]);
+            if (days < 0) {
+                throw new WobbleException("the reminder range cannot be negative");
+            }
+            return days;
+        } catch (NumberFormatException exception) {
+            throw new WobbleException("the reminder range must be a whole number of days");
         }
     }
 }

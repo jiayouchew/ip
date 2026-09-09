@@ -18,7 +18,10 @@ Type `list` to display all stored tasks, `mark <number>` to mark a task as done,
 `unmark <number>` to mark it as unfinished again. Use `delete <number>` to remove a task.
 Use `due on <date>` to display deadlines on that date and events spanning that date.
 Use `find <keyword>` to search task descriptions case-insensitively.
+Use `reminders` to show unfinished deadlines and events in the next seven days, or
+`reminders <days>` to choose a different window.
 Type `bye` to exit.
+Type `help` to display the format of every supported command.
 
 Tasks are saved automatically in the relative file `data/wobble.txt` whenever the list
 changes and loaded again when Wobble starts. The data folder and file are created

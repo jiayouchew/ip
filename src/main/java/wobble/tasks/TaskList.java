@@ -1,6 +1,8 @@
 package wobble.tasks;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.IntStream;
@@ -45,5 +47,32 @@ public class TaskList {
                 .map(index -> index + 1)
                 .boxed()
                 .toList();
+    }
+
+    /** Returns unfinished deadlines and events occurring within a day range. */
+    public List<Integer> findUpcoming(LocalDateTime now, int days) {
+        assert now != null : "The reminder search must have a reference time";
+        assert days >= 0 : "The reminder range must not be negative";
+        LocalDateTime end = now.plusDays(days);
+        return IntStream.range(0, tasks.size())
+                .filter(index -> !tasks.get(index).isDone())
+                .filter(index -> getScheduledTime(tasks.get(index)) != null)
+                .filter(index -> !getScheduledTime(tasks.get(index)).isBefore(now)
+                        && !getScheduledTime(tasks.get(index)).isAfter(end))
+                .boxed()
+                .sorted(Comparator.comparing(index -> getScheduledTime(tasks.get(index))))
+                .map(index -> index + 1)
+                .toList();
+    }
+
+    /** Returns the relevant due or start time for a scheduled task. */
+    private static LocalDateTime getScheduledTime(Task task) {
+        if (task instanceof Deadline deadline) {
+            return deadline.getBy();
+        }
+        if (task instanceof Event event) {
+            return event.getFrom();
+        }
+        return null;
     }
 }

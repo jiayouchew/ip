@@ -2,6 +2,7 @@ package wobble.gui;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.ScrollPane;
@@ -72,11 +73,17 @@ public class MainWindow extends AnchorPane {
         if (command.equals("list")) {
             return listTasks();
         }
+        if (command.equals("help")) {
+            return helpText();
+        }
         if (command.equals("find") || command.startsWith("find ")) {
             return findTasks(command);
         }
         if (command.equals("due on") || command.startsWith("due on ")) {
             return tasksDueOn(command);
+        }
+        if (command.equals("reminders") || command.startsWith("reminders ")) {
+            return reminders(command);
         }
         if (command.equals("mark") || command.startsWith("mark ")
                 || command.equals("unmark") || command.startsWith("unmark ")) {
@@ -101,6 +108,29 @@ public class MainWindow extends AnchorPane {
             result.append("\nNothing is wobbling on the tray yet.");
         }
         return result.toString();
+    }
+
+    /** Returns the command formats supported by Wobble. */
+    private String helpText() {
+        return "Wobble command guide\n\n"
+                + "Add tasks:\n"
+                + "todo <description>\n"
+                + "deadline <description> /by <date/time>\n"
+                + "event <description> /from <date/time> /to <date/time>\n\n"
+                + "Manage tasks:\n"
+                + "list\n"
+                + "find <keyword>\n"
+                + "mark <number>\n"
+                + "unmark <number>\n"
+                + "delete <number>\n"
+                + "\nDates and reminders:\n"
+                + "due on <date>\n"
+                + "reminders [number of days]\n"
+                + "Date: yyyy-MM-dd, yyyy.MM.dd, or yyyy/MM/dd\n"
+                + "Time: yyyy-MM-dd HHmm or yyyy-MM-dd HH:mm\n"
+                + "Example: deadline submit report /by 2026-09-15 1800\n\n"
+                + "Exit:\n"
+                + "bye";
     }
 
     /** Returns tasks whose descriptions contain the requested keyword. */
@@ -136,6 +166,21 @@ public class MainWindow extends AnchorPane {
         }
         if (matches == 0) {
             result.append("\nNo deadlines or events are wobbling on that date.");
+        }
+        return result.toString();
+    }
+
+    /** Returns unfinished deadlines and events within the requested day range. */
+    private String reminders(String command) throws WobbleException {
+        int days = parser.parseReminderDays(command);
+        LocalDateTime now = LocalDateTime.now();
+        StringBuilder result = new StringBuilder("Here are your upcoming reminders:");
+        for (int taskNumber : taskList.findUpcoming(now, days)) {
+            result.append("\n").append(taskNumber).append(".").append(taskList.get(taskNumber));
+        }
+        if (result.toString().equals("Here are your upcoming reminders:")) {
+            result.append("\nNo upcoming reminders are wobbling in the next ")
+                    .append(days).append(" days.");
         }
         return result.toString();
     }
