@@ -2,6 +2,7 @@ package wobble;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Scanner;
 
 import wobble.exceptions.WobbleException;
@@ -60,6 +61,12 @@ public class Wobble {
                 handleDateCommand(command, taskList, parser);
             } else if (command.equals("find") || command.startsWith("find ")) {
                 handleFindCommand(command, taskList, ui);
+            } else if (command.equals("help")) {
+                ui.showHelp();
+            } else if (command.equals("reminders") || command.startsWith("reminders ")) {
+                int days = parser.parseReminderDays(command);
+                LocalDateTime now = LocalDateTime.now();
+                ui.showReminders(taskList, taskList.findUpcoming(now, days), now, days);
             } else if (command.equals("list")) {
                 ui.showTasks(taskList);
             } else if (command.equals("delete") || command.startsWith("delete ")) {

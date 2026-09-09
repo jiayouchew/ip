@@ -75,4 +75,15 @@ class ParserTest {
     void parseDueDate_missingDate_throwsWobbleException() {
         assertThrows(WobbleException.class, () -> parser.parseDueDate("due on"));
     }
+
+    @Test
+    void parseReminderDays_missingRange_usesSevenDays() throws WobbleException {
+        assertEquals(7, parser.parseReminderDays("reminders"));
+    }
+
+    @Test
+    void parseReminderDays_invalidRange_throwsWobbleException() {
+        assertThrows(WobbleException.class, () -> parser.parseReminderDays("reminders tomorrow"));
+        assertThrows(WobbleException.class, () -> parser.parseReminderDays("reminders -1"));
+    }
 }

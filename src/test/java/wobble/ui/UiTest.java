@@ -56,6 +56,14 @@ class UiTest {
     }
 
     @Test
+    void showHelp_containsCommandFormats() {
+        new Ui().showHelp();
+        assertTrue(output.toString().contains("deadline <description> /by <date/time>"));
+        assertTrue(output.toString().contains("reminders [number of days]"));
+        assertTrue(output.toString().contains("Date: yyyy-MM-dd, yyyy.MM.dd, or yyyy/MM/dd"));
+    }
+
+    @Test
     void showTasks_containsTaskAndEmptyTrayMessage() {
         TaskList taskList = new TaskList();
         taskList.add(new Todo("read book"));
