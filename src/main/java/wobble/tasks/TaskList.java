@@ -11,6 +11,7 @@ public class TaskList {
 
     /** Adds a task to the list. */
     public void add(Task task) {
+        assert task != null : "The task list must not contain null tasks";
         tasks.add(task);
     }
 

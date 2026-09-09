@@ -12,6 +12,9 @@ public class Event extends Task {
     /** Creates an unfinished event with its start and end date/time. */
     public Event(String description, LocalDateTime from, LocalDateTime to) {
         super(description, TaskType.EVENT);
+        assert from != null : "An event must have a start date";
+        assert to != null : "An event must have an end date";
+        assert !from.isAfter(to) : "An event must not end before it starts";
         this.from = from;
         this.to = to;
     }
