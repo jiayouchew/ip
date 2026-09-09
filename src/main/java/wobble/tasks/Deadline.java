@@ -11,6 +11,7 @@ public class Deadline extends Task {
     /** Creates an unfinished deadline with its due date and time. */
     public Deadline(String description, LocalDateTime by) {
         super(description, TaskType.DEADLINE);
+        assert by != null : "A deadline must have a due date";
         this.by = by;
     }
 

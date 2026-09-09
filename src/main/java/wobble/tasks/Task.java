@@ -13,6 +13,8 @@ public class Task {
 
     /** Creates an unfinished task with the given description and type. */
     protected Task(String description, TaskType type) {
+        assert description != null : "A task must have a description";
+        assert type != null : "A task must have a task type";
         this.description = description;
         this.type = type;
         this.isDone = false;
