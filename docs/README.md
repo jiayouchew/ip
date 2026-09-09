@@ -32,7 +32,7 @@ Example output:
 
 ```
 ==============================
-  WOBBL-E // Systems Online
+  WOBBLE // Systems Online
 ==============================
 Hello! I'm Wobble.
 Beep boop! Your friendly little robot companion is ready.
@@ -69,7 +69,7 @@ delete 2
 Noted. I've removed this task:
   [D][ ] return book (by: Dec 2 2019 6:00 pm)
 Now you have 1 tasks in the list.
-on 2019/12/02
+due on 2019/12/02
 No deadlines or events are wobbling on that date.
 bye
 Bye. Hope to see you again soon!

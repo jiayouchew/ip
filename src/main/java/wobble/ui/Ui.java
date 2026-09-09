@@ -11,7 +11,7 @@ public class Ui {
     /** Displays Wobble's welcome message. */
     public void showWelcome() {
         System.out.println("==============================");
-        System.out.println("  WOBBL-E // Systems Online");
+        System.out.println("  WOBBLE // Systems Online");
         System.out.println("==============================");
         System.out.println("Hello! I'm Wobble.");
         System.out.println("Beep boop! Your friendly little robot companion is ready.");

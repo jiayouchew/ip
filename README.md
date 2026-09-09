@@ -19,7 +19,7 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    again the next time it starts. The `data` folder is created automatically if needed.
    ```
    ==============================
-     WOBBL-E // Systems Online
+     WOBBLE // Systems Online
    ==============================
    Hello! I'm Wobble.
    Beep boop! Your friendly little robot companion is ready.
@@ -77,4 +77,4 @@ java -jar build/libs/wobble.jar
 ```
 
 The JAR includes the application classes and runtime dependencies, and its entry point
-is configured as `wobble.Wobble`.
+is configured as `wobble.gui.Launcher` and starts the JavaFX GUI.
