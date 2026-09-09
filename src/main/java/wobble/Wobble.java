@@ -1,5 +1,6 @@
 package wobble;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Scanner;
 
@@ -14,76 +15,72 @@ import wobble.ui.Ui;
 
 /** A small chatbot that stores tasks for the current session. */
 public class Wobble {
+    private final Ui ui = new Ui();
+    private final Storage storage = new Storage();
+    private final Parser parser = new Parser();
+
     /** Starts the chatbot and processes commands until the user exits. */
     public static void main(String[] args) {
-        Ui ui = new Ui();
-        ui.showWelcome();
+        new Wobble().run();
+    }
 
-        Storage storage = new Storage();
-        Parser parser = new Parser();
-        TaskList taskList;
-        try {
-            taskList = storage.load();
-        } catch (java.io.IOException exception) {
-            taskList = new TaskList();
-            System.out.println("Wobble diagnostic: saved tasks could not be loaded; starting with an empty tray.");
-        }
+    /** Runs the command loop until the user exits or input ends. */
+    private void run() {
+        ui.showWelcome();
+        TaskList taskList = loadTasks();
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
             String command = ui.readCommand(scanner);
 
-            if (command.equals("bye")) {
-                ui.showGoodbye();
+            if (processCommand(command, taskList)) {
                 break;
-            }
-
-            if (command.equals("due on") || command.startsWith("due on ")) {
-                try {
-                    handleDateCommand(command, taskList, parser);
-                } catch (WobbleException exception) {
-                    System.out.println("Wobble diagnostic: " + exception.getMessage());
-                }
-            } else if (command.equals("find") || command.startsWith("find ")) {
-                try {
-                    handleFindCommand(command, taskList, ui);
-                } catch (WobbleException exception) {
-                    ui.showDiagnostic(exception.getMessage());
-                }
-            } else if (command.equals("list")) {
-                ui.showTasks(taskList);
-            } else if (command.equals("delete") || command.startsWith("delete ")) {
-                try {
-                    handleDeleteCommand(command, taskList);
-                    storage.save(taskList);
-                } catch (WobbleException exception) {
-                    ui.showDiagnostic(exception.getMessage());
-                } catch (java.io.IOException exception) {
-                    ui.showDiagnostic("changes could not be saved.");
-                }
-            } else if (command.equals("mark") || command.startsWith("mark ")
-                    || command.equals("unmark") || command.startsWith("unmark ")) {
-                try {
-                    handleStatusCommand(command, taskList);
-                    storage.save(taskList);
-                } catch (WobbleException exception) {
-                    ui.showDiagnostic(exception.getMessage());
-                } catch (java.io.IOException exception) {
-                    ui.showDiagnostic("changes could not be saved.");
-                }
-            } else {
-                try {
-                    Task task = parser.parseTask(command);
-                    taskList.add(task);
-                    storage.save(taskList);
-                    ui.showTaskAdded(task, taskList.size());
-                } catch (WobbleException exception) {
-                    ui.showDiagnostic(exception.getMessage());
-                } catch (java.io.IOException exception) {
-                    ui.showDiagnostic("task could not be saved.");
-                }
             }
         }
         scanner.close();
+    }
+
+    /** Loads saved tasks or starts with an empty list when loading fails. */
+    private TaskList loadTasks() {
+        try {
+            return storage.load();
+        } catch (IOException exception) {
+            System.out.println("Wobble diagnostic: saved tasks could not be loaded; starting with an empty tray.");
+            return new TaskList();
+        }
+    }
+
+    /** Processes one command and returns whether the application should exit. */
+    private boolean processCommand(String command, TaskList taskList) {
+        if (command.equals("bye")) {
+            ui.showGoodbye();
+            return true;
+        }
+        try {
+            if (command.equals("due on") || command.startsWith("due on ")) {
+                handleDateCommand(command, taskList, parser);
+            } else if (command.equals("find") || command.startsWith("find ")) {
+                handleFindCommand(command, taskList, ui);
+            } else if (command.equals("list")) {
+                ui.showTasks(taskList);
+            } else if (command.equals("delete") || command.startsWith("delete ")) {
+                handleDeleteCommand(command, taskList);
+                storage.save(taskList);
+            } else if (command.equals("mark") || command.startsWith("mark ")
+                    || command.equals("unmark") || command.startsWith("unmark ")) {
+                handleStatusCommand(command, taskList);
+                storage.save(taskList);
+            } else {
+                Task task = parser.parseTask(command);
+                taskList.add(task);
+                storage.save(taskList);
+                ui.showTaskAdded(task, taskList.size());
+            }
+        } catch (WobbleException exception) {
+            ui.showDiagnostic(exception.getMessage());
+        } catch (IOException exception) {
+            ui.showDiagnostic("changes could not be saved.");
+        }
+        return false;
     }
 
     /** Validates a find command and asks the UI to display matching tasks. */
