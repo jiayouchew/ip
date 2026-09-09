@@ -3,6 +3,7 @@ package wobble.tasks;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.IntStream;
 
 /** Stores the tasks created during one Wobble session. */
 public class TaskList {
@@ -36,13 +37,12 @@ public class TaskList {
 
     /** Returns the one-based numbers of tasks whose descriptions contain a keyword. */
     public List<Integer> find(String keyword) {
-        List<Integer> matchingTaskNumbers = new ArrayList<>();
         String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
-        for (int i = 0; i < tasks.size(); i++) {
-            if (tasks.get(i).getDescription().toLowerCase(Locale.ROOT).contains(normalizedKeyword)) {
-                matchingTaskNumbers.add(i + 1);
-            }
-        }
-        return matchingTaskNumbers;
+        return IntStream.range(0, tasks.size())
+                .filter(index -> tasks.get(index).getDescription().toLowerCase(Locale.ROOT)
+                        .contains(normalizedKeyword))
+                .map(index -> index + 1)
+                .boxed()
+                .toList();
     }
 }
