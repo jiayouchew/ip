@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 /** Parses and displays date/time text used by deadlines and events. */
 public final class DateTimeParser {
@@ -17,8 +18,9 @@ public final class DateTimeParser {
         DateTimeFormatter.ofPattern("yyy/MM/dd"),
         DateTimeFormatter.ISO_LOCAL_DATE_TIME
     };
-    private static final DateTimeFormatter DATE_OUTPUT = DateTimeFormatter.ofPattern("MMM d yyyy");
-    private static final DateTimeFormatter TIME_OUTPUT = DateTimeFormatter.ofPattern("MMM d yyyy h:mm a");
+    private static final DateTimeFormatter DATE_OUTPUT = DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH);
+    private static final DateTimeFormatter TIME_OUTPUT = DateTimeFormatter.ofPattern(
+            "MMM d yyyy h:mm a", Locale.ENGLISH);
 
     private DateTimeParser() {
     }
@@ -54,7 +56,9 @@ public final class DateTimeParser {
 
     /** Formats a date/time for friendly display. */
     public static String format(LocalDateTime value) {
-        return value.toLocalTime().equals(LocalTime.MIDNIGHT)
-                ? value.format(DATE_OUTPUT) : value.format(TIME_OUTPUT);
+        if (value.toLocalTime().equals(LocalTime.MIDNIGHT)) {
+            return value.format(DATE_OUTPUT);
+        }
+        return value.format(TIME_OUTPUT).replace(" AM", " am").replace(" PM", " pm");
     }
 }
