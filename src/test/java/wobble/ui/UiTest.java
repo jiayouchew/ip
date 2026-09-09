@@ -73,7 +73,7 @@ class UiTest {
     @Test
     void showDiagnostic_containsMessage() {
         new Ui().showDiagnostic("test error");
-        assertEquals("Wobble diagnostic: test error\n", output.toString());
+        assertEquals("Wobble diagnostic: test error" + System.lineSeparator(), output.toString());
     }
 
     @Test
