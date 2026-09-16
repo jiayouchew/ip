@@ -18,9 +18,21 @@ import wobble.ui.Ui;
 
 /** A small chatbot that stores tasks for the current session. */
 public class Wobble {
-    private final Ui ui = new Ui();
-    private final Storage storage = new Storage();
-    private final Parser parser = new Parser();
+    private final Ui ui;
+    private final Storage storage;
+    private final Parser parser;
+
+    /** Creates Wobble with its standard console UI, storage, and parser. */
+    public Wobble() {
+        this(new Ui(), new Storage(), new Parser());
+    }
+
+    /** Creates Wobble with supplied collaborators, allowing isolated controller tests. */
+    Wobble(Ui ui, Storage storage, Parser parser) {
+        this.ui = ui;
+        this.storage = storage;
+        this.parser = parser;
+    }
 
     /** Starts the chatbot and processes commands until the user exits. */
     public static void main(String[] args) {
@@ -28,7 +40,7 @@ public class Wobble {
     }
 
     /** Runs the command loop until the user exits or input ends. */
-    private void run() {
+    void run() {
         ui.showWelcome();
         TaskList taskList = loadTasks();
         Scanner scanner = new Scanner(System.in);

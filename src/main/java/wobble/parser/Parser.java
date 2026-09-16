@@ -73,7 +73,7 @@ public class Parser {
             }
             int fromSeparator = lowerCaseCommand.indexOf(" /from ");
             int toSeparator = lowerCaseCommand.indexOf(" /to ");
-            if (fromSeparator < 0 || toSeparator < 0 || fromSeparator >= toSeparator) {
+            if (fromSeparator < 0 || toSeparator < 0 || fromSeparator + 7 > toSeparator) {
                 throw new WobbleException("an event needs a description, a /from time, and a /to time.");
             }
             String description = fromSeparator > 6

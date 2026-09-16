@@ -2,6 +2,8 @@ package wobble.gui;
 
 import java.net.URL;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
@@ -15,6 +17,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
 /** Represents one user or Wobble message in the conversation. */
 public class DialogBox extends HBox {
@@ -22,6 +26,8 @@ public class DialogBox extends HBox {
     private static final double AVATAR_FRAME_SIZE = 36;
     private static final double MESSAGE_GAP = 8;
     private static final double MESSAGE_HORIZONTAL_SPACE = 32;
+    private static final String REGULAR_TEXT_STYLE = "-fx-font-style: normal;";
+    private static final Pattern TASK_STATUS_TAG_PATTERN = Pattern.compile("\\[(OVERDUE|PAST)\\]");
     private static final Image WOBBLE_AVATAR = loadImage("/images/wobble-avatar.png");
     private static final Image USER_AVATAR = loadImage("/images/user-avatar.png");
     private final Label messageLabel;
@@ -35,6 +41,7 @@ public class DialogBox extends HBox {
             String avatarStyleClass) {
         messageLabel = message instanceof Label ? (Label) message : null;
         message.getStyleClass().add(styleClass);
+        message.setStyle(REGULAR_TEXT_STYLE);
         StackPane avatarFrame = createAvatarFrame(avatar, avatarStyleClass);
         setAlignment(alignment);
         setSpacing(MESSAGE_GAP);
@@ -57,7 +64,8 @@ public class DialogBox extends HBox {
 
     /** Creates a message displayed as sent by Wobble. */
     public static DialogBox botMessage(String text) {
-        return new DialogBox(text, "bot-message", Pos.TOP_LEFT, WOBBLE_AVATAR, "wobble-avatar");
+        return new DialogBox(createStyledMessageContent(text), "bot-message", Pos.TOP_LEFT,
+                WOBBLE_AVATAR, "wobble-avatar");
     }
 
     /** Creates a Wobble error message with styling that draws attention. */
@@ -92,6 +100,7 @@ public class DialogBox extends HBox {
             }
             Label lineLabel = new Label(line.trim());
             lineLabel.setWrapText(true);
+            lineLabel.setStyle(REGULAR_TEXT_STYLE);
             if (isHeading(line)) {
                 lineLabel.getStyleClass().add("help-heading");
                 VBox.setMargin(lineLabel, new Insets(8, 0, 0, 0));
@@ -115,7 +124,35 @@ public class DialogBox extends HBox {
     private static Label createMessageLabel(String text) {
         Label message = new Label(text);
         message.setWrapText(true);
+        message.setStyle(REGULAR_TEXT_STYLE);
         return message;
+    }
+
+    /** Creates bot content with red styling for overdue and past task markers. */
+    private static TextFlow createStyledMessageContent(String text) {
+        TextFlow content = new TextFlow();
+        Matcher matcher = TASK_STATUS_TAG_PATTERN.matcher(text);
+        int previousEnd = 0;
+        while (matcher.find()) {
+            addMessageText(content, text.substring(previousEnd, matcher.start()), "message-text");
+            Text statusTag = new Text(matcher.group());
+            statusTag.getStyleClass().add("task-status-tag");
+            content.getChildren().add(statusTag);
+            previousEnd = matcher.end();
+        }
+        addMessageText(content, text.substring(previousEnd), "message-text");
+        return content;
+    }
+
+    /** Adds a text segment to a styled bot message when the segment is non-empty. */
+    private static void addMessageText(TextFlow content, String text, String styleClass) {
+        if (text.isEmpty()) {
+            return;
+        }
+        Text messageText = new Text(text);
+        messageText.getStyleClass().add(styleClass);
+        messageText.setStyle(REGULAR_TEXT_STYLE);
+        content.getChildren().add(messageText);
     }
 
     /** Creates a compact circular avatar frame for a conversation participant. */

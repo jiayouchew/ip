@@ -37,6 +37,7 @@
     <bottom>
         <HBox spacing="10.0" styleClass="input-bar">
             <TextField fx:id="userInput" onAction="#handleUserInput"
+                    style="-fx-font-style: normal;"
                     promptText="Type a command — try help" HBox.hgrow="ALWAYS" />
             <Button defaultButton="true" onAction="#handleUserInput" text="Send" />
         </HBox>

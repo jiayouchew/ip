@@ -9,6 +9,23 @@
 .text-field,
 .button {
     -fx-font-style: normal;
+    -fx-font-weight: normal;
+}
+
+.app-title,
+.app-status,
+.app-subtitle,
+.user-message,
+.bot-message,
+.error-message,
+.shutdown-message,
+.message-text,
+.task-status-tag,
+.help-heading,
+.help-description,
+.help-command {
+    -fx-font-style: normal;
+    -fx-font-weight: normal;
 }
 
 .app-shell {
@@ -37,6 +54,7 @@
 
 .app-title {
     -fx-font-size: 22px;
+    -fx-font-style: normal;
     -fx-font-weight: bold;
     -fx-text-fill: #f0c968;
 }
@@ -186,6 +204,20 @@
     -fx-font-family: "Menlo", "Monaco", monospace;
     -fx-font-size: 12px;
     -fx-font-weight: normal;
+}
+
+.message-text {
+    -fx-fill: #2f4d44;
+    -fx-font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-style: normal;
+    -fx-font-weight: normal;
+}
+
+.task-status-tag {
+    -fx-fill: #c43d3d;
+    -fx-font-style: normal;
+    -fx-font-weight: bold;
 }
 
 .help-heading {

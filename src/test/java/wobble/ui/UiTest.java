@@ -1,6 +1,7 @@
 package wobble.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import wobble.tasks.Deadline;
 import wobble.tasks.TaskList;
 import wobble.tasks.Todo;
 
@@ -78,6 +80,36 @@ class UiTest {
     }
 
     @Test
+    void showTasks_emptyList_reportsTidyTray() {
+        new Ui().showTasks(new TaskList());
+
+        assertTrue(output.toString().contains("Nothing is wobbling on the tray yet."));
+    }
+
+    @Test
+    void showMatchingTasks_matchingKeyword_showsMatchingTaskNumbers() {
+        TaskList taskList = new TaskList();
+        taskList.add(new Todo("read book"));
+        taskList.add(new Todo("buy bread"));
+
+        new Ui().showMatchingTasks(taskList, "book");
+
+        assertTrue(output.toString().contains("matching tasks in your list"));
+        assertTrue(output.toString().contains("1. [T][ ] read book"));
+        assertFalse(output.toString().contains("2. [T][ ] buy bread"));
+    }
+
+    @Test
+    void showMatchingTasks_noMatches_reportsClearSignal() {
+        TaskList taskList = new TaskList();
+        taskList.add(new Todo("read book"));
+
+        new Ui().showMatchingTasks(taskList, "holiday");
+
+        assertTrue(output.toString().contains("No tasks match that keyword."));
+    }
+
+    @Test
     void showTaskAdded_containsTaskAndCount() {
         new Ui().showTaskAdded(new Todo("read book"), 1);
         assertTrue(output.toString().contains("[T][ ] read book"));
@@ -91,6 +123,19 @@ class UiTest {
                 LocalDateTime.of(2026, 9, 16, 12, 0), 7);
         assertTrue(output.toString().contains("Radar clear."));
         assertTrue(output.toString().contains("next 7 days"));
+    }
+
+    @Test
+    void showReminders_withResults_showsTasksAndWindowStart() {
+        LocalDateTime now = LocalDateTime.of(2026, 9, 16, 12, 0);
+        TaskList taskList = new TaskList();
+        taskList.add(new Deadline("submit report", now.plusDays(1)));
+
+        new Ui().showReminders(taskList, List.of(1), now, 7);
+
+        assertTrue(output.toString().contains("upcoming reminders"));
+        assertTrue(output.toString().contains("1. [D][ ] submit report"));
+        assertTrue(output.toString().contains("Reminder window starts Sep 16 2026 12:00 pm."));
     }
 
     @Test

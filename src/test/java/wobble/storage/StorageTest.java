@@ -2,7 +2,9 @@ package wobble.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,9 +25,50 @@ class StorageTest {
     Path temporaryDirectory;
 
     @Test
+    void constructor_nullPath_rejectsInvalidPath() {
+        assertThrows(IllegalArgumentException.class, () -> new Storage(null));
+    }
+
+    @Test
+    void constructor_rootPath_rejectsDirectoryPath() {
+        Path rootPath = temporaryDirectory.getRoot();
+
+        assertThrows(IllegalArgumentException.class, () -> new Storage(rootPath));
+    }
+
+    @Test
     void load_missingFile_returnsEmptyTaskList() throws Exception {
         Storage storage = new Storage(temporaryDirectory.resolve("missing/wobble.txt"));
         assertEquals(0, storage.load().size());
+    }
+
+    @Test
+    void load_blankLines_ignoresEmptyRecords() throws Exception {
+        Path file = temporaryDirectory.resolve("wobble.txt");
+        Files.writeString(file, System.lineSeparator() + "  " + System.lineSeparator());
+
+        assertEquals(0, new Storage(file).load().size());
+    }
+
+    @Test
+    void load_directoryPath_throwsIOException() {
+        assertThrows(IOException.class, () -> new Storage(temporaryDirectory).load());
+    }
+
+    @Test
+    void save_nullTaskList_rejectsInvalidInput() {
+        Storage storage = new Storage(temporaryDirectory.resolve("wobble.txt"));
+
+        assertThrows(IllegalArgumentException.class, () -> storage.save(null));
+    }
+
+    @Test
+    void save_emptyTaskList_createsEmptyFile() throws Exception {
+        Path file = temporaryDirectory.resolve("nested/wobble.txt");
+
+        new Storage(file).save(new TaskList());
+
+        assertEquals("", Files.readString(file));
     }
 
     @Test
@@ -64,6 +107,30 @@ class StorageTest {
                 + validRecord + System.lineSeparator()
                 + invalidEvent + System.lineSeparator()
                 + "NOT_A_TASK|0|invalid" + System.lineSeparator());
+
+        TaskList loaded = new Storage(file).load();
+
+        assertEquals(1, loaded.size());
+        assertEquals("[T][ ] read book", loaded.get(1).toString());
+    }
+
+    @Test
+    void load_malformedFieldsAndDates_skipsInvalidEntries() throws Exception {
+        Path file = temporaryDirectory.resolve("wobble.txt");
+        String description = Base64.getEncoder().encodeToString(
+                "read book".getBytes(StandardCharsets.UTF_8));
+        String validRecord = "TODO|0|" + description;
+        String invalidStatus = "TODO|2|" + description;
+        String invalidFieldCount = "TODO|0|" + description + "|extra";
+        String invalidBase64 = "TODO|0|not-base64";
+        String invalidDate = "DEADLINE|0|" + description + "|"
+                + Base64.getEncoder().encodeToString("2027-02-30T18:00".getBytes(StandardCharsets.UTF_8));
+
+        Files.writeString(file, validRecord + System.lineSeparator()
+                + invalidStatus + System.lineSeparator()
+                + invalidFieldCount + System.lineSeparator()
+                + invalidBase64 + System.lineSeparator()
+                + invalidDate + System.lineSeparator());
 
         TaskList loaded = new Storage(file).load();
 

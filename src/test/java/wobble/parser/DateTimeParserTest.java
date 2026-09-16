@@ -71,15 +71,51 @@ class DateTimeParserTest {
     }
 
     @Test
+    void parse_slashedColonSeparatedTime_returnsExpectedDateTime() {
+        assertEquals(LocalDateTime.of(2026, 8, 27, 18, 30),
+                DateTimeParser.parse("2026/08/27 18:30"));
+    }
+
+    @Test
+    void parse_dottedCompactTime_returnsExpectedDateTime() {
+        assertEquals(LocalDateTime.of(2026, 8, 27, 18, 30),
+                DateTimeParser.parse("2026.08.27 1830"));
+    }
+
+    @Test
+    void parse_threeDigitYearDateTime_returnsExpectedDateTime() {
+        assertEquals(LocalDateTime.of(999, 8, 27, 18, 30),
+                DateTimeParser.parse("999/08/27 18:30"));
+    }
+
+    @Test
     void parse_isoDateTime_returnsExpectedDateTime() {
         assertEquals(LocalDateTime.of(2026, 8, 27, 18, 30),
                 DateTimeParser.parse("2026-08-27T18:30"));
     }
 
     @Test
+    void parse_isoDateTimeWithSeconds_returnsExpectedDateTime() {
+        assertEquals(LocalDateTime.of(2026, 8, 27, 18, 30, 45),
+                DateTimeParser.parse("2026-08-27T18:30:45"));
+    }
+
+    @Test
     void parse_invalidDate_throwsDateTimeParseException() {
         assertThrows(DateTimeParseException.class,
                 () -> DateTimeParser.parse("2026-02-30"));
+    }
+
+    @Test
+    void parse_invalidDottedDateOnly_throwsDateTimeParseException() {
+        assertThrows(DateTimeParseException.class,
+                () -> DateTimeParser.parse("2026.09.31"));
+    }
+
+    @Test
+    void parse_invalidSlashedDateOnly_throwsDateTimeParseException() {
+        assertThrows(DateTimeParseException.class,
+                () -> DateTimeParser.parse("2026/09/31"));
     }
 
     @Test
@@ -107,9 +143,21 @@ class DateTimeParserTest {
     }
 
     @Test
+    void parse_endOfDayCompactTime_throwsDateTimeParseException() {
+        assertThrows(DateTimeParseException.class,
+                () -> DateTimeParser.parse("2026-08-27 2400"));
+    }
+
+    @Test
     void parse_invalidMinute_throwsDateTimeParseException() {
         assertThrows(DateTimeParseException.class,
                 () -> DateTimeParser.parse("2026-08-27 23:60"));
+    }
+
+    @Test
+    void parse_invalidIsoDateTime_throwsDateTimeParseException() {
+        assertThrows(DateTimeParseException.class,
+                () -> DateTimeParser.parse("2026-09-31T23:00"));
     }
 
     @Test
@@ -149,5 +197,16 @@ class DateTimeParserTest {
     void format_noonDateTime_uses12HourClock() {
         assertEquals("Aug 27 2026 12:00 pm",
                 DateTimeParser.format(LocalDateTime.of(2026, 8, 27, 12, 0)));
+    }
+
+    @Test
+    void format_nullValue_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> DateTimeParser.format(null));
+    }
+
+    @Test
+    void format_oneMinuteAfterMidnight_includesTime() {
+        assertEquals("Aug 27 2026 12:01 am",
+                DateTimeParser.format(LocalDateTime.of(2026, 8, 27, 0, 1)));
     }
 }
