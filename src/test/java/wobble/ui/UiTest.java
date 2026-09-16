@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Scanner;
 
 import org.junit.jupiter.api.AfterEach;
@@ -53,6 +55,8 @@ class UiTest {
         new Ui().showWelcome();
         assertTrue(output.toString().contains("Hello! I'm Wobble."));
         assertTrue(output.toString().contains("Systems Online"));
+        assertTrue(output.toString().contains("Beep boop!"));
+        assertTrue(output.toString().contains("Memory tray calibrated."));
     }
 
     @Test
@@ -75,7 +79,16 @@ class UiTest {
     void showTaskAdded_containsTaskAndCount() {
         new Ui().showTaskAdded(new Todo("read book"), 1);
         assertTrue(output.toString().contains("[T][ ] read book"));
+        assertTrue(output.toString().contains("Task docked in my memory tray"));
         assertTrue(output.toString().contains("Now you have 1 tasks"));
+    }
+
+    @Test
+    void showReminders_emptyResults_reportsClearRadar() {
+        new Ui().showReminders(new TaskList(), List.of(),
+                LocalDateTime.of(2026, 9, 16, 12, 0), 7);
+        assertTrue(output.toString().contains("Radar clear."));
+        assertTrue(output.toString().contains("next 7 days"));
     }
 
     @Test
@@ -87,6 +100,12 @@ class UiTest {
     @Test
     void showGoodbye_containsGoodbyeMessage() {
         new Ui().showGoodbye();
-        assertTrue(output.toString().contains("Bye. Hope to see you again soon!"));
+        assertTrue(output.toString().contains("Bye, human! Wobble is signing off."));
+        assertTrue(output.toString().contains("SHUTDOWN_SEQUENCE :: START"));
+        assertTrue(output.toString().contains("> save memory .......... OK"));
+        assertTrue(output.toString().contains("> lock task tray .......... OK"));
+        assertTrue(output.toString().contains("> disconnect .......... OK"));
+        assertTrue(output.toString().contains("STATUS :: OFFLINE"));
+        assertTrue(output.toString().contains("See you on the next boot, human."));
     }
 }

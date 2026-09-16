@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
+import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -32,8 +35,19 @@ import wobble.tasks.TaskList;
 
 /** Controls the main Wobble conversation window and task commands. */
 public class MainWindow extends BorderPane {
-    private static final double SHUTDOWN_DELAY_SECONDS = 2;
+    private static final int SHUTDOWN_DOT_COUNT = 10;
+    private static final double SHUTDOWN_DOT_INTERVAL_MILLIS = 80;
+    private static final double SHUTDOWN_FINISH_DELAY_MILLIS = 500;
     private static final String BACKGROUND_IMAGE_PATH = "/images/wobble-background.png";
+    private static final String ONLINE_SUBTITLE = "TASK COMPANION // MEMORY TRAY ONLINE";
+    private static final String OFFLINE_SUBTITLE = "TASK COMPANION // MEMORY TRAY OFFLINE";
+    private static final String SHUTDOWN_INTRO = "Bye, human! Wobble is signing off.\n"
+            + "SHUTDOWN_SEQUENCE :: START\n";
+    private static final String[] SHUTDOWN_OPERATIONS = {
+        "save memory",
+        "lock task tray",
+        "disconnect"
+    };
 
     @FXML
     private ScrollPane scrollPane;
@@ -43,6 +57,8 @@ public class MainWindow extends BorderPane {
     private TextField userInput;
     @FXML
     private Label statusLabel;
+    @FXML
+    private Label subtitleLabel;
     @FXML
     private VBox appHeader;
     @FXML
@@ -58,8 +74,10 @@ public class MainWindow extends BorderPane {
     public void initialize() {
         configureConversationBackground();
         scrollPane.setPannable(true);
+        subtitleLabel.setText(ONLINE_SUBTITLE);
         loadTasks();
-        addBotMessage("Hello! I'm Wobble.\nBeep boop! My memory tray is ready.");
+        addBotMessage("Hello! I'm Wobble.\nBeep boop! My memory tray is ready.\n"
+                + "Memory tray calibrated. Awaiting your next mission.");
         scrollToBottom();
     }
 
@@ -76,13 +94,13 @@ public class MainWindow extends BorderPane {
         dialogContainer.getChildren().add(DialogBox.userMessage(input));
         try {
             String response = execute(input);
-            if (input.equals("help")) {
+            if (input.equals("bye")) {
+                DialogBox shutdownMessage = addShutdownMessage(response);
+                setOfflineAndExit(shutdownMessage);
+            } else if (input.equals("help")) {
                 addHelpMessage(response);
             } else {
                 addBotMessage(response);
-            }
-            if (input.equals("bye")) {
-                setOfflineAndExit();
             }
         } catch (WobbleException exception) {
             String diagnostic = "Wobble diagnostic: " + exception.getMessage();
@@ -110,7 +128,7 @@ public class MainWindow extends BorderPane {
     /** Executes a command using Wobble's existing task logic. */
     private String execute(String command) throws WobbleException, IOException {
         if (command.equals("bye")) {
-            return "Bye. Hope to see you again soon!";
+            return SHUTDOWN_INTRO;
         }
         if (command.equals("list")) {
             return listTasks();
@@ -138,12 +156,13 @@ public class MainWindow extends BorderPane {
         Task task = parser.parseTask(command);
         taskList.add(task);
         storage.save(taskList);
-        return "Beep boop! Added to my memory tray:\n  " + task;
+        return "Beep boop! Task docked in my memory tray:\n  " + task
+                + "\nI'll keep an eye on it.";
     }
 
     /** Returns a formatted representation of the current task list. */
     private String listTasks() {
-        StringBuilder result = new StringBuilder("Here are the tasks in your list:");
+        StringBuilder result = new StringBuilder("Memory tray scan complete.\nHere are the tasks in your list:");
         for (int i = 1; i <= taskList.size(); i++) {
             result.append("\n").append(i).append(".").append(taskList.get(i));
         }
@@ -155,8 +174,8 @@ public class MainWindow extends BorderPane {
 
     /** Returns a single-card, readable guide to Wobble's commands and input formats. */
     private String helpText() {
-        return "WOBBLE COMMAND DECK\n"
-                + "Type a command below. Type help any time to see this guide again.\n\n"
+        return "WOBBLE COMMAND DECK // QUICK REFERENCE\n"
+                + "Pick a command below. Type help again whenever you need a systems check.\n\n"
                 + "ADD TASKS\n"
                 + "Save a task without a date:\n"
                 + "  todo <description>\n\n"
@@ -206,7 +225,7 @@ public class MainWindow extends BorderPane {
         if (keyword.isEmpty()) {
             throw new WobbleException("a search keyword is required.");
         }
-        StringBuilder result = new StringBuilder("Here are the matching tasks in your list:");
+        StringBuilder result = new StringBuilder("Signal scan complete.\nHere are the matching tasks in your list:");
         for (int taskNumber : taskList.find(keyword)) {
             result.append("\n").append(taskNumber).append(".").append(taskList.get(taskNumber));
         }
@@ -216,7 +235,7 @@ public class MainWindow extends BorderPane {
     /** Returns deadlines and events occurring on the requested date. */
     private String tasksDueOn(String command) throws WobbleException {
         LocalDate date = parser.parseDueDate(command);
-        StringBuilder result = new StringBuilder("Tasks due on " + date + ":");
+        StringBuilder result = new StringBuilder("Time scanner locked onto " + date + ":");
         int matches = 0;
         for (int i = 1; i <= taskList.size(); i++) {
             Task task = taskList.get(i);
@@ -241,12 +260,13 @@ public class MainWindow extends BorderPane {
     private String reminders(String command) throws WobbleException {
         int days = parser.parseReminderDays(command);
         LocalDateTime now = LocalDateTime.now();
-        StringBuilder result = new StringBuilder("Here are your upcoming reminders:");
-        for (int taskNumber : taskList.findUpcoming(now, days)) {
+        List<Integer> upcomingTaskNumbers = taskList.findUpcoming(now, days);
+        StringBuilder result = new StringBuilder("Radar sweep complete. Here are your upcoming reminders:");
+        for (int taskNumber : upcomingTaskNumbers) {
             result.append("\n").append(taskNumber).append(".").append(taskList.get(taskNumber));
         }
-        if (result.toString().equals("Here are your upcoming reminders:")) {
-            result.append("\nNo upcoming reminders are wobbling in the next ")
+        if (upcomingTaskNumbers.isEmpty()) {
+            result.append("\nRadar clear. No upcoming reminders are wobbling in the next ")
                     .append(days).append(" days.");
         }
         return result.toString();
@@ -265,7 +285,8 @@ public class MainWindow extends BorderPane {
             task.markAsNotDone();
         }
         storage.save(taskList);
-        return "Updated: " + task;
+        String status = parts[0].equals("mark") ? "marked as done" : "marked as not done";
+        return "Status sync complete. Task " + status + ":\n  " + task;
     }
 
     /** Deletes a task and saves the updated task list. */
@@ -277,7 +298,8 @@ public class MainWindow extends BorderPane {
         Task task = getTask(parts[1]);
         taskList.delete(Integer.parseInt(parts[1]));
         storage.save(taskList);
-        return "Removed: " + task;
+        return "Memory tray update: removed:\n  " + task
+                + "\nThe tray now holds " + taskList.size() + " tasks.";
     }
 
     /** Returns the task selected by a one-based number. */
@@ -317,6 +339,13 @@ public class MainWindow extends BorderPane {
         dialogContainer.getChildren().add(DialogBox.errorMessage(message));
     }
 
+    /** Adds Wobble's final robot-console message before the application exits. */
+    private DialogBox addShutdownMessage(String message) {
+        DialogBox shutdownMessage = DialogBox.shutdownMessage(message);
+        dialogContainer.getChildren().add(shutdownMessage);
+        return shutdownMessage;
+    }
+
     /** Scrolls to the newest message after JavaFX has completed the updated conversation layout. */
     private void scrollToBottom() {
         Platform.runLater(() -> {
@@ -325,6 +354,12 @@ public class MainWindow extends BorderPane {
             scrollPane.layout();
             Platform.runLater(() -> scrollPane.setVvalue(1.0));
         });
+    }
+
+    /** Updates the shutdown card and keeps the newest animation line visible. */
+    private void updateShutdownCard(DialogBox shutdownMessage, String text) {
+        shutdownMessage.updateShutdownMessage(text);
+        scrollToBottom();
     }
 
     /** Applies the robot-maintenance background without distorting it during window resizing. */
@@ -343,16 +378,55 @@ public class MainWindow extends BorderPane {
         conversationArea.setBackground(new Background(backgroundImage));
     }
 
-    /** Switches Wobble to an offline state before closing the JavaFX application. */
-    private void setOfflineAndExit() {
+    /** Switches Wobble offline and starts its animated robot-console shutdown sequence. */
+    private void setOfflineAndExit(DialogBox shutdownMessage) {
         isClosing = true;
         statusLabel.setText("● OFFLINE");
+        subtitleLabel.setText(OFFLINE_SUBTITLE);
         statusLabel.getStyleClass().remove("app-status-online");
         statusLabel.getStyleClass().add("app-status-offline");
         appHeader.getStyleClass().add("offline-header");
 
-        PauseTransition shutdownDelay = new PauseTransition(Duration.seconds(SHUTDOWN_DELAY_SECONDS));
-        shutdownDelay.setOnFinished(event -> Platform.exit());
-        shutdownDelay.play();
+        animateShutdownStep(shutdownMessage, new StringBuilder(SHUTDOWN_INTRO), 0);
+    }
+
+    /** Animates one shutdown operation by progressively adding dots before displaying {@code OK}. */
+    private void animateShutdownStep(DialogBox shutdownMessage, StringBuilder output, int operationIndex) {
+        if (operationIndex >= SHUTDOWN_OPERATIONS.length) {
+            output.append("\nSTATUS :: OFFLINE // beep... boop.")
+                    .append("\nSee you on the next boot, human.");
+            updateShutdownCard(shutdownMessage, output.toString());
+            PauseTransition shutdownDelay = new PauseTransition(
+                    Duration.millis(SHUTDOWN_FINISH_DELAY_MILLIS));
+            shutdownDelay.setOnFinished(event -> Platform.exit());
+            shutdownDelay.play();
+            return;
+        }
+
+        String operation = SHUTDOWN_OPERATIONS[operationIndex];
+        Timeline progress = new Timeline();
+        for (int dotCount = 1; dotCount <= SHUTDOWN_DOT_COUNT; dotCount++) {
+            int currentDotCount = dotCount;
+            progress.getKeyFrames().add(new KeyFrame(
+                    Duration.millis(currentDotCount * SHUTDOWN_DOT_INTERVAL_MILLIS),
+                    event -> updateShutdownCard(shutdownMessage,
+                            formatShutdownProgress(output, operation, currentDotCount))));
+        }
+        progress.getKeyFrames().add(new KeyFrame(
+                Duration.millis((SHUTDOWN_DOT_COUNT + 1) * SHUTDOWN_DOT_INTERVAL_MILLIS),
+                event -> {
+                    output.append("\n> ").append(operation).append(" ")
+                            .append(".".repeat(SHUTDOWN_DOT_COUNT)).append(" OK");
+                    updateShutdownCard(shutdownMessage, output.toString());
+                    animateShutdownStep(shutdownMessage, output, operationIndex + 1);
+                }));
+        progress.play();
+    }
+
+    /** Builds the shutdown card text for an operation that is still reporting progress. */
+    private static String formatShutdownProgress(StringBuilder completedOutput, String operation,
+            int dotCount) {
+        String progress = ".".repeat(dotCount);
+        return completedOutput + "\n> " + operation + " " + progress;
     }
 }
