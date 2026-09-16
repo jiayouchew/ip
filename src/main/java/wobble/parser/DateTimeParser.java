@@ -13,9 +13,7 @@ public final class DateTimeParser {
     private static final DateTimeFormatter[] DATE_INPUT_FORMATS = {
         strictFormatter("uuuu-MM-dd"),
         strictFormatter("uuuu.MM.dd"),
-        strictFormatter("uuuu/MM/dd"),
-        strictFormatter("uuu.MM.dd"),
-        strictFormatter("uuu/MM/dd")
+        strictFormatter("uuuu/MM/dd")
     };
     private static final DateTimeFormatter[] INPUT_FORMATS = {
         strictFormatter("uuuu-MM-dd HHmm"),
@@ -24,10 +22,6 @@ public final class DateTimeParser {
         strictFormatter("uuuu.MM.dd HH:mm"),
         strictFormatter("uuuu/MM/dd HHmm"),
         strictFormatter("uuuu/MM/dd HH:mm"),
-        strictFormatter("uuu.MM.dd HHmm"),
-        strictFormatter("uuu.MM.dd HH:mm"),
-        strictFormatter("uuu/MM/dd HHmm"),
-        strictFormatter("uuu/MM/dd HH:mm"),
         DateTimeFormatter.ISO_LOCAL_DATE_TIME.withResolverStyle(ResolverStyle.STRICT)
     };
     private static final DateTimeFormatter DATE_OUTPUT = DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH);

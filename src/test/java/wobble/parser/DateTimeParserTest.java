@@ -29,15 +29,15 @@ class DateTimeParserTest {
     }
 
     @Test
-    void parse_threeDigitYearDottedDate_returnsStartOfDay() {
-        assertEquals(LocalDateTime.of(999, 8, 27, 0, 0),
-                DateTimeParser.parse("999.08.27"));
+    void parse_threeDigitYearDottedDate_rejectsUnsupportedFormat() {
+        assertThrows(DateTimeParseException.class,
+                () -> DateTimeParser.parse("999.08.27"));
     }
 
     @Test
-    void parse_threeDigitYearSlashedDate_returnsStartOfDay() {
-        assertEquals(LocalDateTime.of(999, 8, 27, 0, 0),
-                DateTimeParser.parse("999/08/27"));
+    void parse_threeDigitYearSlashedDate_rejectsUnsupportedFormat() {
+        assertThrows(DateTimeParseException.class,
+                () -> DateTimeParser.parse("999/08/27"));
     }
 
     @Test
@@ -83,9 +83,9 @@ class DateTimeParserTest {
     }
 
     @Test
-    void parse_threeDigitYearDateTime_returnsExpectedDateTime() {
-        assertEquals(LocalDateTime.of(999, 8, 27, 18, 30),
-                DateTimeParser.parse("999/08/27 18:30"));
+    void parse_threeDigitYearDateTime_rejectsUnsupportedFormat() {
+        assertThrows(DateTimeParseException.class,
+                () -> DateTimeParser.parse("999/08/27 18:30"));
     }
 
     @Test

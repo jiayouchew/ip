@@ -46,7 +46,7 @@ public class Ui {
         System.out.println("Dates and reminders:");
         System.out.println("  due on <date>");
         System.out.println("  reminders [number of days]");
-        System.out.println("  Date: yyyy-MM-dd, yyyy.MM.dd, yyyy/MM/dd, yyy.MM.dd, or yyy/MM/dd");
+        System.out.println("  Date: yyyy-MM-dd, yyyy.MM.dd, or yyyy/MM/dd");
         System.out.println("  Time: <date> HHmm (e.g., 2026-09-15 1800)");
         System.out.println("  Time: <date> HH:mm (e.g., 2026-09-15 18:00)");
         System.out.println("  Valid time range: 00:00 to 23:59 (24-hour clock)");

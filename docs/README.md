@@ -56,7 +56,6 @@ Supported date-only formats are:
 - `yyyy-MM-dd`, for example `2026-09-15`
 - `yyyy.MM.dd`, for example `2026.09.15`
 - `yyyy/MM/dd`, for example `2026/09/15`
-- `yyy.MM.dd` or `yyy/MM/dd` for three-digit years
 
 For a date and time, append either `HHmm` or `HH:mm` to a supported date, for example:
 

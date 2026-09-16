@@ -246,7 +246,6 @@ public class MainWindow extends BorderPane {
                 + "  yyyy-MM-dd    2026-09-15\n"
                 + "  yyyy.MM.dd    2026.09.15\n"
                 + "  yyyy/MM/dd    2026/09/15\n"
-                + "  yyy.MM.dd or yyy/MM/dd\n\n"
                 + "TIME FORMATS\n"
                 + "Use any date format above, followed by one of these time formats:\n"
                 + "  <date> HHmm       2026/09/15 1800\n"
