@@ -1,15 +1,28 @@
 package wobble.gui;
 
 import java.io.IOException;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import wobble.exceptions.WobbleException;
+import wobble.parser.CommandSuggester;
 import wobble.parser.Parser;
 import wobble.storage.Storage;
 import wobble.tasks.Deadline;
@@ -18,42 +31,71 @@ import wobble.tasks.Task;
 import wobble.tasks.TaskList;
 
 /** Controls the main Wobble conversation window and task commands. */
-public class MainWindow extends AnchorPane {
+public class MainWindow extends BorderPane {
+    private static final double SHUTDOWN_DELAY_SECONDS = 2;
+    private static final String BACKGROUND_IMAGE_PATH = "/images/wobble-background.png";
+
     @FXML
     private ScrollPane scrollPane;
     @FXML
     private VBox dialogContainer;
     @FXML
     private TextField userInput;
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private VBox appHeader;
+    @FXML
+    private StackPane conversationArea;
 
     private final Parser parser = new Parser();
     private final Storage storage = new Storage();
     private TaskList taskList;
+    private boolean isClosing;
 
     /** Initializes the conversation area and loads saved tasks. */
     @FXML
     public void initialize() {
-        scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
+        configureConversationBackground();
+        scrollPane.setPannable(true);
         loadTasks();
         addBotMessage("Hello! I'm Wobble.\nBeep boop! My memory tray is ready.");
+        scrollToBottom();
     }
 
     /** Processes the command entered by the user and displays Wobble's reply. */
     @FXML
     private void handleUserInput() {
+        if (isClosing) {
+            return;
+        }
         String input = userInput.getText().trim();
         if (input.isEmpty()) {
             return;
         }
         dialogContainer.getChildren().add(DialogBox.userMessage(input));
         try {
-            addBotMessage(execute(input));
+            String response = execute(input);
+            if (input.equals("help")) {
+                addHelpMessage(response);
+            } else {
+                addBotMessage(response);
+            }
+            if (input.equals("bye")) {
+                setOfflineAndExit();
+            }
         } catch (WobbleException exception) {
-            addBotMessage("Wobble diagnostic: " + exception.getMessage());
+            String diagnostic = "Wobble diagnostic: " + exception.getMessage();
+            if (exception.shouldSuggestCommand()) {
+                diagnostic += "\nDo you mean " + CommandSuggester.suggest(input) + "?";
+            }
+            addErrorMessage(diagnostic);
         } catch (IOException exception) {
-            addBotMessage("Wobble diagnostic: changes could not be saved.");
+            addErrorMessage("Wobble diagnostic: changes could not be saved.");
+        } finally {
+            userInput.clear();
+            scrollToBottom();
         }
-        userInput.clear();
     }
 
     /** Loads saved tasks or starts with an empty list when no save file exists. */
@@ -89,7 +131,8 @@ public class MainWindow extends AnchorPane {
                 || command.equals("unmark") || command.startsWith("unmark ")) {
             return updateTaskStatus(command);
         }
-        if (command.equals("delete") || command.startsWith("delete ")) {
+        if (command.equals("delete") || command.startsWith("delete ")
+                || command.equals("remove") || command.startsWith("remove ")) {
             return deleteTask(command);
         }
         Task task = parser.parseTask(command);
@@ -110,34 +153,58 @@ public class MainWindow extends AnchorPane {
         return result.toString();
     }
 
-    /** Returns the command formats supported by Wobble. */
+    /** Returns a single-card, readable guide to Wobble's commands and input formats. */
     private String helpText() {
-        return "Wobble command guide\n\n"
-                + "Add tasks:\n"
-                + "todo <description>\n"
-                + "deadline <description> /by <date/time>\n"
-                + "event <description> /from <date/time> /to <date/time>\n\n"
-                + "Manage tasks:\n"
-                + "list\n"
-                + "find <keyword>\n"
-                + "mark <number>\n"
-                + "unmark <number>\n"
-                + "delete <number>\n"
-                + "\nDates and reminders:\n"
-                + "due on <date>\n"
-                + "reminders [number of days]\n"
-                + "Date: yyyy-MM-dd, yyyy.MM.dd, or yyyy/MM/dd\n"
-                + "Time: yyyy-MM-dd HHmm or yyyy-MM-dd HH:mm\n"
-                + "Example: deadline submit report /by 2026-09-15 1800\n\n"
-                + "Exit:\n"
-                + "bye";
+        return "WOBBLE COMMAND DECK\n"
+                + "Type a command below. Type help any time to see this guide again.\n\n"
+                + "ADD TASKS\n"
+                + "Save a task without a date:\n"
+                + "  todo <description>\n\n"
+                + "Save a task with a due date or time:\n"
+                + "  deadline <description> /by <date/time>\n\n"
+                + "Save a task that spans a time range:\n"
+                + "  event <description> /from <start> /to <end>\n\n"
+                + "MANAGE TASKS\n"
+                + "Show every task:\n"
+                + "  list\n\n"
+                + "Search task descriptions:\n"
+                + "  find <keyword>\n\n"
+                + "Mark a task as done:\n"
+                + "  mark <number>\n\n"
+                + "Mark a task as not done:\n"
+                + "  unmark <number>\n\n"
+                + "Remove a task:\n"
+                + "  delete <number>\n"
+                + "  remove <number> (alias)\n\n"
+                + "DATES AND REMINDERS\n"
+                + "Show deadlines and events on a date:\n"
+                + "  due on <date>\n\n"
+                + "Show upcoming tasks for 7 days:\n"
+                + "  reminders\n\n"
+                + "Choose a reminder window:\n"
+                + "  reminders <days>\n\n"
+                + "DATE FORMATS\n"
+                + "Date-only format (examples):\n"
+                + "  yyyy-MM-dd    2026-09-15\n"
+                + "  yyyy.MM.dd    2026.09.15\n"
+                + "  yyyy/MM/dd    2026/09/15\n"
+                + "  yyy.MM.dd or yyy/MM/dd\n\n"
+                + "Date + time uses any date format above, followed by:\n"
+                + "  <date> HHmm       2026/09/15 1800\n"
+                + "  <date> HH:mm      2026.09.15 18:00\n\n"
+                + "EXAMPLE\n"
+                + "Add a report deadline:\n"
+                + "  deadline submit report /by 2026-09-15 1800\n\n"
+                + "EXIT\n"
+                + "Power down Wobble:\n"
+                + "  bye";
     }
 
     /** Returns tasks whose descriptions contain the requested keyword. */
     private String findTasks(String command) throws WobbleException {
         String keyword = command.length() > 4 ? command.substring(4).trim() : "";
         if (keyword.isEmpty()) {
-            throw new WobbleException("please use find <keyword>");
+            throw new WobbleException("a search keyword is required.");
         }
         StringBuilder result = new StringBuilder("Here are the matching tasks in your list:");
         for (int taskNumber : taskList.find(keyword)) {
@@ -189,7 +256,7 @@ public class MainWindow extends AnchorPane {
     private String updateTaskStatus(String command) throws WobbleException, IOException {
         String[] parts = command.split("\\s+");
         if (parts.length != 2) {
-            throw new WobbleException("please use mark <number> or unmark <number>");
+            throw new WobbleException("a task number is required to mark or unmark a task.");
         }
         Task task = getTask(parts[1]);
         if (parts[0].equals("mark")) {
@@ -205,7 +272,7 @@ public class MainWindow extends AnchorPane {
     private String deleteTask(String command) throws WobbleException, IOException {
         String[] parts = command.split("\\s+");
         if (parts.length != 2) {
-            throw new WobbleException("please use delete <number>");
+            throw new WobbleException("a task number is required.");
         }
         Task task = getTask(parts[1]);
         taskList.delete(Integer.parseInt(parts[1]));
@@ -218,7 +285,7 @@ public class MainWindow extends AnchorPane {
         try {
             Task task = taskList.get(Integer.parseInt(taskNumber));
             if (task == null) {
-                throw new WobbleException("that task number is off my radar.");
+                throw new WobbleException(invalidTaskNumberMessage(), false);
             }
             return task;
         } catch (NumberFormatException exception) {
@@ -226,8 +293,66 @@ public class MainWindow extends AnchorPane {
         }
     }
 
+    /** Returns a clear explanation of the valid task-number range. */
+    private String invalidTaskNumberMessage() {
+        if (taskList.size() == 0) {
+            return "There are no tasks in the list yet.";
+        }
+        return "That task number is off my radar. Choose a number from 1 to "
+                + taskList.size() + ".";
+    }
+
     /** Adds a bot response to the conversation using the response styling. */
     private void addBotMessage(String message) {
         dialogContainer.getChildren().add(DialogBox.botMessage(message));
+    }
+
+    /** Adds the help guide as one structured card with readable internal headings. */
+    private void addHelpMessage(String message) {
+        dialogContainer.getChildren().add(DialogBox.helpMessage(message));
+    }
+
+    /** Adds an error response with a visual treatment distinct from normal replies. */
+    private void addErrorMessage(String message) {
+        dialogContainer.getChildren().add(DialogBox.errorMessage(message));
+    }
+
+    /** Scrolls to the newest message after JavaFX has completed the updated conversation layout. */
+    private void scrollToBottom() {
+        Platform.runLater(() -> {
+            dialogContainer.applyCss();
+            dialogContainer.layout();
+            scrollPane.layout();
+            Platform.runLater(() -> scrollPane.setVvalue(1.0));
+        });
+    }
+
+    /** Applies the robot-maintenance background without distorting it during window resizing. */
+    private void configureConversationBackground() {
+        URL imageUrl = MainWindow.class.getResource(BACKGROUND_IMAGE_PATH);
+        if (imageUrl == null) {
+            throw new IllegalStateException("Missing Wobble background resource.");
+        }
+        Image background = new Image(imageUrl.toExternalForm());
+        BackgroundSize coverSize = new BackgroundSize(100, 100, true, true, false, true);
+        BackgroundImage backgroundImage = new BackgroundImage(background,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER,
+                coverSize);
+        conversationArea.setBackground(new Background(backgroundImage));
+    }
+
+    /** Switches Wobble to an offline state before closing the JavaFX application. */
+    private void setOfflineAndExit() {
+        isClosing = true;
+        statusLabel.setText("● OFFLINE");
+        statusLabel.getStyleClass().remove("app-status-online");
+        statusLabel.getStyleClass().add("app-status-offline");
+        appHeader.getStyleClass().add("offline-header");
+
+        PauseTransition shutdownDelay = new PauseTransition(Duration.seconds(SHUTDOWN_DELAY_SECONDS));
+        shutdownDelay.setOnFinished(event -> Platform.exit());
+        shutdownDelay.play();
     }
 }

@@ -59,6 +59,18 @@ class DateTimeParserTest {
     }
 
     @Test
+    void parse_slashedDateTime_returnsExpectedDateTime() {
+        assertEquals(LocalDateTime.of(2026, 8, 27, 18, 0),
+                DateTimeParser.parse("2026/08/27 1800"));
+    }
+
+    @Test
+    void parse_dottedDateTime_returnsExpectedDateTime() {
+        assertEquals(LocalDateTime.of(2026, 8, 27, 18, 30),
+                DateTimeParser.parse("2026.08.27 18:30"));
+    }
+
+    @Test
     void parse_isoDateTime_returnsExpectedDateTime() {
         assertEquals(LocalDateTime.of(2026, 8, 27, 18, 30),
                 DateTimeParser.parse("2026-08-27T18:30"));

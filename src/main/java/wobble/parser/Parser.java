@@ -29,7 +29,7 @@ public class Parser {
         if (command.equals("deadline") || command.startsWith("deadline ")) {
             int separator = command.indexOf(" /by ");
             if (separator < 0) {
-                throw new WobbleException("a deadline must use: deadline <description> /by <date>");
+                throw new WobbleException("a deadline needs a description and a /by date.");
             }
             String description = command.substring(9, separator).trim();
             String by = command.substring(separator + 5).trim();
@@ -39,14 +39,14 @@ public class Parser {
             try {
                 return new Deadline(description, DateTimeParser.parse(by));
             } catch (java.time.format.DateTimeParseException exception) {
-                throw new WobbleException("the deadline date must use yyyy-MM-dd or yyyy-MM-dd HHmm");
+                throw new WobbleException("the deadline date or time is not in a supported format.");
             }
         }
         if (command.equals("event") || command.startsWith("event ")) {
             int fromSeparator = command.indexOf(" /from ");
             int toSeparator = command.indexOf(" /to ");
             if (fromSeparator < 0 || toSeparator < 0 || fromSeparator >= toSeparator) {
-                throw new WobbleException("an event must use: event <description> /from <start> /to <end>");
+                throw new WobbleException("an event needs a description, a /from time, and a /to time.");
             }
             String description = command.substring(6, fromSeparator).trim();
             String from = command.substring(fromSeparator + 7, toSeparator).trim();
@@ -57,17 +57,17 @@ public class Parser {
             try {
                 return new Event(description, DateTimeParser.parse(from), DateTimeParser.parse(to));
             } catch (java.time.format.DateTimeParseException exception) {
-                throw new WobbleException("event dates must use yyyy-MM-dd or yyyy-MM-dd HHmm");
+                throw new WobbleException("the event date or time is not in a supported format.");
             }
         }
-        throw new WobbleException("I do not know that command. Type help to see the available commands.");
+        throw new WobbleException("I do not recognize that command.");
     }
 
     /** Parses a date used by the due-on command. */
     public LocalDate parseDueDate(String command) throws WobbleException {
         String dateText = command.length() > 7 ? command.substring(7).trim() : "";
         if (dateText.isEmpty()) {
-            throw new WobbleException("please use due on <date>, for example: due on 2019-12-02");
+            throw new WobbleException("a due date is required.");
         }
         try {
             return DateTimeParser.parse(dateText).toLocalDate();
@@ -83,7 +83,7 @@ public class Parser {
             return 7;
         }
         if (parts.length != 2) {
-            throw new WobbleException("please use reminders or reminders <number of days>");
+            throw new WobbleException("the reminders command accepts an optional number of days.");
         }
         try {
             int days = Integer.parseInt(parts[1]);
