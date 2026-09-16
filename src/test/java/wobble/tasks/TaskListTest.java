@@ -74,4 +74,13 @@ class TaskListTest {
         assertEquals(java.util.List.of(),
                 taskList.findUpcoming(LocalDateTime.of(2026, 9, 10, 0, 0), 7));
     }
+
+    @Test
+    void findUpcoming_dateOnlyTaskToday_includesTaskThroughoutToday() {
+        TaskList taskList = new TaskList();
+        taskList.add(new Deadline("today", LocalDateTime.of(2026, 9, 10, 0, 0)));
+
+        assertEquals(java.util.List.of(1),
+                taskList.findUpcoming(LocalDateTime.of(2026, 9, 10, 18, 0), 0));
+    }
 }

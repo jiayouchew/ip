@@ -37,6 +37,7 @@ public class Ui {
         System.out.println("  mark <number>");
         System.out.println("  unmark <number>");
         System.out.println("  delete <number>");
+        System.out.println("  remove <number> (alias)");
         System.out.println();
         System.out.println("Dates and reminders:");
         System.out.println("  due on <date>");

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Scanner;
 
 import wobble.exceptions.WobbleException;
+import wobble.parser.CommandSuggester;
 import wobble.parser.Parser;
 import wobble.storage.Storage;
 import wobble.tasks.Deadline;
@@ -69,7 +70,8 @@ public class Wobble {
                 ui.showReminders(taskList, taskList.findUpcoming(now, days), now, days);
             } else if (command.equals("list")) {
                 ui.showTasks(taskList);
-            } else if (command.equals("delete") || command.startsWith("delete ")) {
+            } else if (command.equals("delete") || command.startsWith("delete ")
+                    || command.equals("remove") || command.startsWith("remove ")) {
                 handleDeleteCommand(command, taskList);
                 storage.save(taskList);
             } else if (command.equals("mark") || command.startsWith("mark ")
@@ -83,7 +85,12 @@ public class Wobble {
                 ui.showTaskAdded(task, taskList.size());
             }
         } catch (WobbleException exception) {
-            ui.showDiagnostic(exception.getMessage());
+            String diagnostic = exception.getMessage();
+            if (exception.shouldSuggestCommand()) {
+                diagnostic += System.lineSeparator()
+                        + "Do you mean " + CommandSuggester.suggest(command) + "?";
+            }
+            ui.showDiagnostic(diagnostic);
         } catch (IOException exception) {
             ui.showDiagnostic("changes could not be saved.");
         }
@@ -94,7 +101,7 @@ public class Wobble {
     private static void handleFindCommand(String command, TaskList taskList, Ui ui) throws WobbleException {
         String keyword = command.length() > 4 ? command.substring(4).trim() : "";
         if (keyword.isEmpty()) {
-            throw new WobbleException("please use find <keyword>, for example: find book");
+            throw new WobbleException("a search keyword is required.");
         }
         ui.showMatchingTasks(taskList, keyword);
     }
@@ -125,18 +132,18 @@ public class Wobble {
     private static void handleDeleteCommand(String command, TaskList taskList) throws WobbleException {
         String[] parts = command.trim().split("\\s+");
         if (parts.length != 2) {
-            throw new WobbleException("please use delete <number>, for example: delete 2");
+            throw new WobbleException("a task number is required.");
         }
         try {
             Task removedTask = taskList.delete(Integer.parseInt(parts[1]));
             if (removedTask == null) {
-                throw new WobbleException("that task number is off my radar. Your task list is unchanged.");
+                throw new WobbleException(invalidTaskNumberMessage(taskList), false);
             }
             System.out.println("Noted. I've removed this task:");
             System.out.println("  " + removedTask);
             System.out.println("Now you have " + taskList.size() + " tasks in the list.");
         } catch (NumberFormatException exception) {
-            throw new WobbleException("task numbers must be numbers, for example: delete 2");
+            throw new WobbleException("task numbers must be numbers.");
         }
     }
 
@@ -144,14 +151,14 @@ public class Wobble {
     private static void handleStatusCommand(String command, TaskList taskList) throws WobbleException {
         String[] parts = command.trim().split("\\s+");
         if (parts.length != 2) {
-            throw new WobbleException("please use mark <number> or unmark <number>, for example: mark 2");
+            throw new WobbleException("a task number is required to mark or unmark a task.");
         }
 
         try {
             int taskNumber = Integer.parseInt(parts[1]);
             Task task = taskList.get(taskNumber);
             if (task == null) {
-                throw new WobbleException("that task number is off my radar. Your task list is unchanged.");
+                throw new WobbleException(invalidTaskNumberMessage(taskList), false);
             }
 
             boolean markingDone = parts[0].equals("mark");
@@ -164,7 +171,16 @@ public class Wobble {
             }
             System.out.println("  " + task);
         } catch (NumberFormatException exception) {
-            throw new WobbleException("task numbers must be numbers, for example: mark 2");
+            throw new WobbleException("task numbers must be numbers.");
         }
+    }
+
+    /** Returns a clear explanation of the valid task-number range. */
+    private static String invalidTaskNumberMessage(TaskList taskList) {
+        if (taskList.size() == 0) {
+            return "There are no tasks in the list yet.";
+        }
+        return "That task number is off my radar. Choose a number from 1 to "
+                + taskList.size() + ".";
     }
 }

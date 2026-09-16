@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 /** Creates the main window for the FXML-based Wobble interface. */
@@ -15,11 +15,11 @@ public class Main extends Application {
     public void start(Stage stage) {
         try {
             FXMLLoader loader = new FXMLLoader(Main.class.getResource("/view/MainWindow.fxml"));
-            AnchorPane root = loader.load();
-            stage.setTitle("Wobble");
+            Parent root = loader.load();
+            stage.setTitle("Wobble — Task Companion");
             stage.setScene(new Scene(root));
-            stage.setMinWidth(500);
-            stage.setMinHeight(400);
+            stage.setMinWidth(420);
+            stage.setMinHeight(420);
             stage.show();
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to load the Wobble interface.", exception);

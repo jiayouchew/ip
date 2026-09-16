@@ -55,8 +55,10 @@ class ParserTest {
 
     @Test
     void parseTask_malformedDeadline_throwsWobbleException() {
-        assertThrows(WobbleException.class,
+        WobbleException exception = assertThrows(WobbleException.class,
                 () -> parser.parseTask("deadline submit report"));
+
+        assertEquals("a deadline needs a description and a /by date.", exception.getMessage());
     }
 
     @Test

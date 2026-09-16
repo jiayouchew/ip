@@ -49,15 +49,19 @@ public class TaskList {
                 .toList();
     }
 
-    /** Returns unfinished deadlines and events occurring within a day range. */
+    /**
+     * Returns unfinished deadlines and events occurring within a day range.
+     * The window starts at the beginning of today so date-only tasks remain visible throughout today.
+     */
     public List<Integer> findUpcoming(LocalDateTime now, int days) {
         assert now != null : "The reminder search must have a reference time";
         assert days >= 0 : "The reminder range must not be negative";
+        LocalDateTime start = now.toLocalDate().atStartOfDay();
         LocalDateTime end = now.plusDays(days);
         return IntStream.range(0, tasks.size())
                 .filter(index -> !tasks.get(index).isDone())
                 .filter(index -> getScheduledTime(tasks.get(index)) != null)
-                .filter(index -> !getScheduledTime(tasks.get(index)).isBefore(now)
+                .filter(index -> !getScheduledTime(tasks.get(index)).isBefore(start)
                         && !getScheduledTime(tasks.get(index)).isAfter(end))
                 .boxed()
                 .sorted(Comparator.comparing(index -> getScheduledTime(tasks.get(index))))
