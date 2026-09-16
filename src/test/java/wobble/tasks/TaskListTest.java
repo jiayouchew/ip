@@ -1,7 +1,10 @@
 package wobble.tasks;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 
@@ -18,6 +21,38 @@ class TaskListTest {
 
         assertEquals(1, taskList.size());
         assertEquals(task, taskList.get(1));
+    }
+
+    @Test
+    void containsEquivalent_sameTaskDetails_returnsTrue() {
+        TaskList taskList = new TaskList();
+        taskList.add(new Todo("read book"));
+
+        assertTrue(taskList.containsEquivalent(new Todo("read book")));
+    }
+
+    @Test
+    void containsEquivalent_differentScheduledDate_returnsFalse() {
+        TaskList taskList = new TaskList();
+        taskList.add(new Deadline("submit report", LocalDateTime.of(2026, 8, 27, 0, 0)));
+
+        assertFalse(taskList.containsEquivalent(
+                new Deadline("submit report", LocalDateTime.of(2026, 8, 28, 0, 0))));
+    }
+
+    @Test
+    void add_duplicateTask_rejectsDuplicate() {
+        TaskList taskList = new TaskList();
+        taskList.add(new Todo("read book"));
+
+        assertThrows(IllegalArgumentException.class, () -> taskList.add(new Todo("read book")));
+    }
+
+    @Test
+    void find_blankKeyword_rejectsInvalidSearch() {
+        TaskList taskList = new TaskList();
+
+        assertThrows(IllegalArgumentException.class, () -> taskList.find(" "));
     }
 
     @Test
@@ -40,6 +75,20 @@ class TaskListTest {
         assertEquals("read book", removed.getDescription());
         assertEquals(1, taskList.size());
         assertEquals("submit report", taskList.get(1).getDescription());
+    }
+
+    @Test
+    void addAt_validPosition_restoresTaskOrder() {
+        TaskList taskList = new TaskList();
+        Task firstTask = new Todo("read book");
+        taskList.add(firstTask);
+        taskList.add(new Todo("buy bread"));
+
+        taskList.delete(1);
+        taskList.addAt(1, firstTask);
+
+        assertEquals(firstTask, taskList.get(1));
+        assertEquals("buy bread", taskList.get(2).getDescription());
     }
 
     @Test

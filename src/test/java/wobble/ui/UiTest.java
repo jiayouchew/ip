@@ -64,7 +64,9 @@ class UiTest {
         new Ui().showHelp();
         assertTrue(output.toString().contains("deadline <description> /by <date/time>"));
         assertTrue(output.toString().contains("reminders [number of days]"));
-        assertTrue(output.toString().contains("Date: yyyy-MM-dd, yyyy.MM.dd, or yyyy/MM/dd"));
+        assertTrue(output.toString().contains("Time: <date> HHmm (e.g., 2026-09-15 1800)"));
+        assertTrue(output.toString().contains("Time: <date> HH:mm (e.g., 2026-09-15 18:00)"));
+        assertTrue(output.toString().contains("Valid time range: 00:00 to 23:59 (24-hour clock)"));
     }
 
     @Test
@@ -72,7 +74,7 @@ class UiTest {
         TaskList taskList = new TaskList();
         taskList.add(new Todo("read book"));
         new Ui().showTasks(taskList);
-        assertTrue(output.toString().contains("1.[T][ ] read book"));
+        assertTrue(output.toString().contains("1. [T][ ] read book"));
     }
 
     @Test

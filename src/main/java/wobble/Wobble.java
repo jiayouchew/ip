@@ -3,6 +3,7 @@ package wobble;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.Scanner;
 
 import wobble.exceptions.WobbleException;
@@ -45,43 +46,52 @@ public class Wobble {
     private TaskList loadTasks() {
         try {
             return storage.load();
-        } catch (IOException exception) {
-            System.out.println("Wobble diagnostic: saved tasks could not be loaded; starting with an empty tray.");
+        } catch (IOException | SecurityException exception) {
+            System.out.println("Wobble diagnostic: saved tasks could not be loaded; "
+                    + "starting with an empty tray.");
             return new TaskList();
         }
     }
 
     /** Processes one command and returns whether the application should exit. */
     private boolean processCommand(String command, TaskList taskList) {
-        if (command.equals("bye")) {
+        command = Parser.normalizeCommand(command);
+        String lowerCaseCommand = command.toLowerCase(Locale.ROOT);
+        if (lowerCaseCommand.equals("bye")) {
             ui.showGoodbye();
             return true;
         }
         try {
-            if (command.equals("due on") || command.startsWith("due on ")) {
+            if (lowerCaseCommand.equals("due on") || lowerCaseCommand.startsWith("due on ")) {
                 handleDateCommand(command, taskList, parser);
-            } else if (command.equals("find") || command.startsWith("find ")) {
+            } else if (lowerCaseCommand.equals("find") || lowerCaseCommand.startsWith("find ")) {
                 handleFindCommand(command, taskList, ui);
-            } else if (command.equals("help")) {
+            } else if (lowerCaseCommand.equals("help")) {
                 ui.showHelp();
-            } else if (command.equals("reminders") || command.startsWith("reminders ")) {
+            } else if (lowerCaseCommand.equals("reminders") || lowerCaseCommand.startsWith("reminders ")) {
                 int days = parser.parseReminderDays(command);
                 LocalDateTime now = LocalDateTime.now();
                 ui.showReminders(taskList, taskList.findUpcoming(now, days), now, days);
-            } else if (command.equals("list")) {
+            } else if (lowerCaseCommand.equals("list")) {
                 ui.showTasks(taskList);
-            } else if (command.equals("delete") || command.startsWith("delete ")
-                    || command.equals("remove") || command.startsWith("remove ")) {
-                handleDeleteCommand(command, taskList);
-                storage.save(taskList);
-            } else if (command.equals("mark") || command.startsWith("mark ")
-                    || command.equals("unmark") || command.startsWith("unmark ")) {
-                handleStatusCommand(command, taskList);
-                storage.save(taskList);
+            } else if (lowerCaseCommand.equals("delete") || lowerCaseCommand.startsWith("delete ")
+                    || lowerCaseCommand.equals("remove") || lowerCaseCommand.startsWith("remove ")) {
+                handleDeleteCommand(command, taskList, storage);
+            } else if (lowerCaseCommand.equals("mark") || lowerCaseCommand.startsWith("mark ")
+                    || lowerCaseCommand.equals("unmark") || lowerCaseCommand.startsWith("unmark ")) {
+                handleStatusCommand(command, taskList, storage);
             } else {
                 Task task = parser.parseTask(command);
+                if (taskList.containsEquivalent(task)) {
+                    throw new WobbleException("that task is already in the memory tray.", false);
+                }
                 taskList.add(task);
-                storage.save(taskList);
+                try {
+                    storage.save(taskList);
+                } catch (IOException | SecurityException exception) {
+                    taskList.delete(taskList.size());
+                    throw exception;
+                }
                 ui.showTaskAdded(task, taskList.size());
             }
         } catch (WobbleException exception) {
@@ -91,7 +101,7 @@ public class Wobble {
                         + "Do you mean " + CommandSuggester.suggest(command) + "?";
             }
             ui.showDiagnostic(diagnostic);
-        } catch (IOException exception) {
+        } catch (IOException | SecurityException exception) {
             ui.showDiagnostic("changes could not be saved.");
         }
         return false;
@@ -109,6 +119,7 @@ public class Wobble {
     /** Displays deadlines and events that occur on a requested date. */
     private static void handleDateCommand(String command, TaskList taskList, Parser parser) throws WobbleException {
         LocalDate date = parser.parseDueDate(command);
+        System.out.println("Time scanner locked onto " + date + ":");
         int matches = 0;
         for (int i = 1; i <= taskList.size(); i++) {
             Task task = taskList.get(i);
@@ -119,7 +130,7 @@ public class Wobble {
                         && !date.isAfter(event.getTo().toLocalDate());
             }
             if (occursOnDate) {
-                System.out.println(i + "." + task);
+                System.out.println(i + ". " + task);
                 matches++;
             }
         }
@@ -129,50 +140,62 @@ public class Wobble {
     }
 
     /** Deletes the task referred to by a delete command. */
-    private static void handleDeleteCommand(String command, TaskList taskList) throws WobbleException {
-        String[] parts = command.trim().split("\\s+");
+    private static void handleDeleteCommand(String command, TaskList taskList, Storage storage)
+            throws WobbleException, IOException {
+        String[] parts = command.split(" ");
         if (parts.length != 2) {
             throw new WobbleException("a task number is required.");
         }
-        try {
-            Task removedTask = taskList.delete(Integer.parseInt(parts[1]));
-            if (removedTask == null) {
-                throw new WobbleException(invalidTaskNumberMessage(taskList), false);
-            }
-            System.out.println("Noted. I've removed this task:");
-            System.out.println("  " + removedTask);
-            System.out.println("Now you have " + taskList.size() + " tasks in the list.");
-        } catch (NumberFormatException exception) {
-            throw new WobbleException("task numbers must be numbers.");
+        int taskNumber = Parser.parseTaskNumber(parts[1]);
+        Task removedTask = taskList.delete(taskNumber);
+        if (removedTask == null) {
+            throw new WobbleException(invalidTaskNumberMessage(taskList), false);
         }
+        try {
+            storage.save(taskList);
+        } catch (IOException | SecurityException exception) {
+            taskList.addAt(taskNumber, removedTask);
+            throw exception;
+        }
+        System.out.println("Memory tray update: removed:");
+        System.out.println("  " + removedTask);
+        System.out.println("The tray now holds " + taskList.size() + " tasks.");
     }
 
     /** Marks or unmarks the task referred to by a status command. */
-    private static void handleStatusCommand(String command, TaskList taskList) throws WobbleException {
-        String[] parts = command.trim().split("\\s+");
+    private static void handleStatusCommand(String command, TaskList taskList, Storage storage)
+            throws WobbleException, IOException {
+        String[] parts = command.split(" ");
         if (parts.length != 2) {
             throw new WobbleException("a task number is required to mark or unmark a task.");
         }
 
-        try {
-            int taskNumber = Integer.parseInt(parts[1]);
-            Task task = taskList.get(taskNumber);
-            if (task == null) {
-                throw new WobbleException(invalidTaskNumberMessage(taskList), false);
-            }
+        int taskNumber = Parser.parseTaskNumber(parts[1]);
+        Task task = taskList.get(taskNumber);
+        if (task == null) {
+            throw new WobbleException(invalidTaskNumberMessage(taskList), false);
+        }
 
-            boolean markingDone = parts[0].equals("mark");
-            if (markingDone) {
+        boolean wasDone = task.isDone();
+        boolean markingDone = parts[0].equalsIgnoreCase("mark");
+        if (markingDone) {
+            task.markAsDone();
+        } else {
+            task.markAsNotDone();
+        }
+        try {
+            storage.save(taskList);
+        } catch (IOException | SecurityException exception) {
+            if (wasDone) {
                 task.markAsDone();
-                System.out.println("Nice! I've marked this task as done:");
             } else {
                 task.markAsNotDone();
-                System.out.println("OK, I've marked this task as not done yet:");
             }
-            System.out.println("  " + task);
-        } catch (NumberFormatException exception) {
-            throw new WobbleException("task numbers must be numbers.");
+            throw exception;
         }
+        String status = markingDone ? "marked as done" : "marked as not done";
+        System.out.println("Status sync complete. Task " + status + ":");
+        System.out.println("  " + task);
     }
 
     /** Returns a clear explanation of the valid task-number range. */

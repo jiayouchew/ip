@@ -1,6 +1,7 @@
 package wobble.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -23,6 +24,13 @@ class ParserTest {
         Task task = parser.parseTask("todo read book");
 
         assertInstanceOf(Todo.class, task);
+        assertEquals("[T][ ] read book", task.toString());
+    }
+
+    @Test
+    void parseTask_mixedCaseAndExtraWhitespace_normalizesCommand() throws WobbleException {
+        Task task = parser.parseTask("  TODO   read   book  ");
+
         assertEquals("[T][ ] read book", task.toString());
     }
 
@@ -68,6 +76,77 @@ class ParserTest {
     }
 
     @Test
+    void parseTask_invalidDeadlineTime_showsSupportedTimeRange() {
+        WobbleException exception = assertThrows(WobbleException.class,
+                () -> parser.parseTask("deadline submit report /by 2026-08-27 24:00"));
+
+        assertEquals("the deadline date or time is invalid. Try yyyy-MM-dd HH:mm, "
+                        + "for example 2026-09-16 18:00.",
+                exception.getMessage());
+        assertFalse(exception.shouldSuggestCommand());
+    }
+
+    @Test
+    void parseTask_repeatedDeadlineParameter_throwsWobbleException() {
+        WobbleException exception = assertThrows(WobbleException.class,
+                () -> parser.parseTask("deadline submit report /by 2026-08-27 /by 2026-08-28"));
+
+        assertEquals("a deadline accepts only one /by date.", exception.getMessage());
+    }
+
+    @Test
+    void parseTask_missingDeadlineDate_throwsWobbleException() {
+        assertThrows(WobbleException.class,
+                () -> parser.parseTask("deadline submit report /by"));
+    }
+
+    @Test
+    void parseTask_emptyDeadlineDescription_throwsWobbleException() {
+        assertThrows(WobbleException.class,
+                () -> parser.parseTask("deadline /by 2026-08-27"));
+    }
+
+    @Test
+    void parseTask_repeatedEventParameter_throwsWobbleException() {
+        WobbleException exception = assertThrows(WobbleException.class,
+                () -> parser.parseTask("event meeting /from 2026-08-27 /to 2026-08-28 /to 2026-08-29"));
+
+        assertEquals("an event accepts only one /from time and one /to time.", exception.getMessage());
+    }
+
+    @Test
+    void parseTask_nonIncreasingEventRange_throwsWobbleException() {
+        WobbleException exception = assertThrows(WobbleException.class,
+                () -> parser.parseTask("event meeting /from 2026-08-28 /to 2026-08-27"));
+
+        assertEquals("an event must end after it starts.", exception.getMessage());
+        assertFalse(exception.shouldSuggestCommand());
+    }
+
+    @Test
+    void parseTask_invalidEventTime_showsSupportedTimeRange() {
+        WobbleException exception = assertThrows(WobbleException.class,
+                () -> parser.parseTask("event meeting /from 2026-08-27 2200 /to 2026-08-27 24:00"));
+
+        assertEquals("the event date or time is invalid. Try yyyy-MM-dd HH:mm, "
+                        + "for example 2026-09-16 18:00.",
+                exception.getMessage());
+        assertFalse(exception.shouldSuggestCommand());
+    }
+
+    @Test
+    void parseTask_emptyEventDescription_throwsWobbleException() {
+        assertThrows(WobbleException.class,
+                () -> parser.parseTask("event /from 2026-08-27 /to 2026-08-28"));
+    }
+
+    @Test
+    void parseTask_controlCharacterInDescription_throwsWobbleException() {
+        assertThrows(WobbleException.class,
+                () -> parser.parseTask("todo read\u0000book"));
+    }
+
+    @Test
     void parseDueDate_validDate_returnsDate() throws WobbleException {
         assertEquals(LocalDateTime.of(2026, 8, 27, 0, 0).toLocalDate(),
                 parser.parseDueDate("due on 2026/08/27"));
@@ -79,6 +158,20 @@ class ParserTest {
     }
 
     @Test
+    void parseDueDate_invalidDate_suppressesCommandSuggestion() {
+        WobbleException exception = assertThrows(WobbleException.class,
+                () -> parser.parseDueDate("due on 2027-02-31"));
+
+        assertFalse(exception.shouldSuggestCommand());
+    }
+
+    @Test
+    void parseDueDate_mixedCaseAndExtraWhitespace_returnsDate() throws WobbleException {
+        assertEquals(LocalDateTime.of(2026, 8, 27, 0, 0).toLocalDate(),
+                parser.parseDueDate("  DUE   ON   2026/08/27  "));
+    }
+
+    @Test
     void parseReminderDays_missingRange_usesSevenDays() throws WobbleException {
         assertEquals(7, parser.parseReminderDays("reminders"));
     }
@@ -87,5 +180,16 @@ class ParserTest {
     void parseReminderDays_invalidRange_throwsWobbleException() {
         assertThrows(WobbleException.class, () -> parser.parseReminderDays("reminders tomorrow"));
         assertThrows(WobbleException.class, () -> parser.parseReminderDays("reminders -1"));
+    }
+
+    @Test
+    void parseReminderDays_oversizedRange_throwsWobbleException() {
+        assertThrows(WobbleException.class,
+                () -> parser.parseReminderDays("reminders " + Integer.MAX_VALUE));
+    }
+
+    @Test
+    void parseTaskNumber_specialCharacters_throwsWobbleException() {
+        assertThrows(WobbleException.class, () -> Parser.parseTaskNumber("+1"));
     }
 }

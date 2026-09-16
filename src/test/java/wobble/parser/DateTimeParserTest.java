@@ -83,9 +83,33 @@ class DateTimeParserTest {
     }
 
     @Test
+    void parse_invalidDottedDateTime_throwsDateTimeParseException() {
+        assertThrows(DateTimeParseException.class,
+                () -> DateTimeParser.parse("2026.09.31 2300"));
+    }
+
+    @Test
+    void parse_invalidSlashedDateTime_throwsDateTimeParseException() {
+        assertThrows(DateTimeParseException.class,
+                () -> DateTimeParser.parse("2027/02/30 23:00"));
+    }
+
+    @Test
     void parse_invalidTime_throwsDateTimeParseException() {
         assertThrows(DateTimeParseException.class,
                 () -> DateTimeParser.parse("2026-08-27 2500"));
+    }
+
+    @Test
+    void parse_endOfDayTime_throwsDateTimeParseException() {
+        assertThrows(DateTimeParseException.class,
+                () -> DateTimeParser.parse("2026-08-27 24:00"));
+    }
+
+    @Test
+    void parse_invalidMinute_throwsDateTimeParseException() {
+        assertThrows(DateTimeParseException.class,
+                () -> DateTimeParser.parse("2026-08-27 23:60"));
     }
 
     @Test
@@ -98,6 +122,11 @@ class DateTimeParserTest {
     void parse_blankInput_throwsDateTimeParseException() {
         assertThrows(DateTimeParseException.class,
                 () -> DateTimeParser.parse("   "));
+    }
+
+    @Test
+    void parse_nullInput_throwsDateTimeParseException() {
+        assertThrows(DateTimeParseException.class, () -> DateTimeParser.parse(null));
     }
 
     @Test
