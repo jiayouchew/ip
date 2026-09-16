@@ -24,6 +24,16 @@ class TaskTest {
     }
 
     @Test
+    void newTask_nullDescription_rejectsInvalidTask() {
+        assertThrows(IllegalArgumentException.class, () -> new Task(null));
+    }
+
+    @Test
+    void newTask_nullType_rejectsInvalidTask() {
+        assertThrows(IllegalArgumentException.class, () -> new Task("read book", null));
+    }
+
+    @Test
     void markAsDone_changesStatusToDone() {
         Task task = new Task("read book");
         task.markAsDone();
@@ -38,5 +48,21 @@ class TaskTest {
         task.markAsNotDone();
         assertFalse(task.isDone());
         assertEquals(" ", task.getStatusIcon());
+    }
+
+    @Test
+    void hasSameDetailsAs_sameTaskDetails_returnsTrue() {
+        Task task = new Task("read book");
+
+        assertTrue(task.hasSameDetailsAs(new Task("read book")));
+    }
+
+    @Test
+    void hasSameDetailsAs_differentOrNullTask_returnsFalse() {
+        Task task = new Task("read book");
+
+        assertFalse(task.hasSameDetailsAs(new Task("buy bread")));
+        assertFalse(task.hasSameDetailsAs(new Deadline("read book", java.time.LocalDateTime.of(2099, 8, 27, 0, 0))));
+        assertFalse(task.hasSameDetailsAs(null));
     }
 }

@@ -57,6 +57,12 @@ class ParserTest {
     }
 
     @Test
+    void parseTask_nullOrBlankCommand_throwsWobbleException() {
+        assertThrows(WobbleException.class, () -> parser.parseTask(null));
+        assertThrows(WobbleException.class, () -> parser.parseTask("   "));
+    }
+
+    @Test
     void parseTask_unknownCommand_throwsWobbleException() {
         assertThrows(WobbleException.class, () -> parser.parseTask("blah"));
     }
@@ -101,6 +107,14 @@ class ParserTest {
     }
 
     @Test
+    void parseTask_malformedDeadlineSeparator_throwsWobbleException() {
+        WobbleException exception = assertThrows(WobbleException.class,
+                () -> parser.parseTask("deadline submit report /by2026-08-27"));
+
+        assertEquals("a deadline needs a description and a /by date.", exception.getMessage());
+    }
+
+    @Test
     void parseTask_emptyDeadlineDescription_throwsWobbleException() {
         assertThrows(WobbleException.class,
                 () -> parser.parseTask("deadline /by 2026-08-27"));
@@ -112,6 +126,30 @@ class ParserTest {
                 () -> parser.parseTask("event meeting /from 2026-08-27 /to 2026-08-28 /to 2026-08-29"));
 
         assertEquals("an event accepts only one /from time and one /to time.", exception.getMessage());
+    }
+
+    @Test
+    void parseTask_missingEventParameter_throwsWobbleException() {
+        assertThrows(WobbleException.class,
+                () -> parser.parseTask("event meeting /from 2026-08-27"));
+        assertThrows(WobbleException.class,
+                () -> parser.parseTask("event meeting /to 2026-08-28"));
+    }
+
+    @Test
+    void parseTask_malformedEventSeparator_throwsWobbleException() {
+        WobbleException exception = assertThrows(WobbleException.class,
+                () -> parser.parseTask("event meeting /from2026-08-27 /to 2026-08-28"));
+
+        assertEquals("an event needs a description, a /from time, and a /to time.", exception.getMessage());
+    }
+
+    @Test
+    void parseTask_missingEventDate_throwsWobbleException() {
+        assertThrows(WobbleException.class,
+                () -> parser.parseTask("event meeting /from /to 2026-08-28"));
+        assertThrows(WobbleException.class,
+                () -> parser.parseTask("event meeting /from 2026-08-27 /to"));
     }
 
     @Test
@@ -172,6 +210,20 @@ class ParserTest {
     }
 
     @Test
+    void parseDueDate_wrongCommand_throwsWobbleException() {
+        WobbleException exception = assertThrows(WobbleException.class,
+                () -> parser.parseDueDate("deadline 2026-08-27"));
+
+        assertEquals("the due-on command must use the format: due on <date>.", exception.getMessage());
+    }
+
+    @Test
+    void parseDueDate_dottedDate_returnsDate() throws WobbleException {
+        assertEquals(LocalDateTime.of(2026, 8, 27, 0, 0).toLocalDate(),
+                parser.parseDueDate("due on 2026.08.27"));
+    }
+
+    @Test
     void parseReminderDays_missingRange_usesSevenDays() throws WobbleException {
         assertEquals(7, parser.parseReminderDays("reminders"));
     }
@@ -183,9 +235,53 @@ class ParserTest {
     }
 
     @Test
+    void parseReminderDays_validRanges_returnsRequestedDays() throws WobbleException {
+        assertEquals(0, parser.parseReminderDays("reminders 0"));
+        assertEquals(30, parser.parseReminderDays("reminders 30"));
+        assertEquals(36500, parser.parseReminderDays("reminders 36500"));
+    }
+
+    @Test
+    void parseReminderDays_wrongCommand_throwsWobbleException() {
+        WobbleException exception = assertThrows(WobbleException.class,
+                () -> parser.parseReminderDays("reminder 7"));
+
+        assertEquals("the reminders command must use the format: reminders [days].", exception.getMessage());
+    }
+
+    @Test
+    void parseReminderDays_multipleArguments_throwsWobbleException() {
+        assertThrows(WobbleException.class,
+                () -> parser.parseReminderDays("reminders 7 extra"));
+    }
+
+    @Test
     void parseReminderDays_oversizedRange_throwsWobbleException() {
         assertThrows(WobbleException.class,
                 () -> parser.parseReminderDays("reminders " + Integer.MAX_VALUE));
+    }
+
+    @Test
+    void parseReminderDays_numberTooLarge_throwsWobbleException() {
+        assertThrows(WobbleException.class,
+                () -> parser.parseReminderDays("reminders 999999999999999999999999"));
+    }
+
+    @Test
+    void normalizeCommand_nullAndWhitespace_returnsNormalizedText() {
+        assertEquals("", Parser.normalizeCommand(null));
+        assertEquals("todo read book", Parser.normalizeCommand("  todo\tread  book  "));
+    }
+
+    @Test
+    void parseTaskNumber_validValue_returnsInteger() throws WobbleException {
+        assertEquals(12, Parser.parseTaskNumber("12"));
+    }
+
+    @Test
+    void parseTaskNumber_nullOrOverflow_throwsWobbleException() {
+        assertThrows(WobbleException.class, () -> Parser.parseTaskNumber(null));
+        assertThrows(WobbleException.class, () -> Parser.parseTaskNumber("999999999999999999"));
     }
 
     @Test

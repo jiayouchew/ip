@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -49,10 +50,20 @@ class TaskListTest {
     }
 
     @Test
+    void add_nullTask_rejectsInvalidTask() {
+        assertThrows(IllegalArgumentException.class, () -> new TaskList().add(null));
+    }
+
+    @Test
     void find_blankKeyword_rejectsInvalidSearch() {
         TaskList taskList = new TaskList();
 
         assertThrows(IllegalArgumentException.class, () -> taskList.find(" "));
+    }
+
+    @Test
+    void find_nullKeyword_rejectsInvalidSearch() {
+        assertThrows(IllegalArgumentException.class, () -> new TaskList().find(null));
     }
 
     @Test
@@ -89,6 +100,41 @@ class TaskListTest {
 
         assertEquals(firstTask, taskList.get(1));
         assertEquals("buy bread", taskList.get(2).getDescription());
+    }
+
+    @Test
+    void addAt_endPosition_appendsTask() {
+        TaskList taskList = new TaskList();
+        taskList.add(new Todo("read book"));
+
+        taskList.addAt(2, new Todo("buy bread"));
+
+        assertEquals("buy bread", taskList.get(2).getDescription());
+    }
+
+    @Test
+    void addAt_invalidPositionOrTask_rejectsInput() {
+        TaskList taskList = new TaskList();
+        taskList.add(new Todo("read book"));
+
+        assertThrows(IllegalArgumentException.class, () -> taskList.addAt(0, new Todo("buy bread")));
+        assertThrows(IllegalArgumentException.class, () -> taskList.addAt(3, new Todo("buy bread")));
+        assertThrows(IllegalArgumentException.class, () -> taskList.addAt(1, null));
+    }
+
+    @Test
+    void addAt_duplicateTask_rejectsDuplicate() {
+        TaskList taskList = new TaskList();
+        taskList.add(new Todo("read book"));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> taskList.addAt(1, new Todo("read book")));
+        assertEquals(1, taskList.size());
+    }
+
+    @Test
+    void containsEquivalent_nullTask_rejectsInvalidCandidate() {
+        assertThrows(IllegalArgumentException.class, () -> new TaskList().containsEquivalent(null));
     }
 
     @Test
@@ -131,5 +177,32 @@ class TaskListTest {
 
         assertEquals(java.util.List.of(1),
                 taskList.findUpcoming(LocalDateTime.of(2026, 9, 10, 18, 0), 0));
+    }
+
+    @Test
+    void findUpcoming_includesEndBoundaryAndExcludesTodo() {
+        TaskList taskList = new TaskList();
+        LocalDateTime now = LocalDateTime.of(2026, 9, 10, 12, 0);
+        taskList.add(new Todo("ordinary task"));
+        taskList.add(new Deadline("at end", now.plusDays(2)));
+        taskList.add(new Event("starts at end", now.plusDays(2), now.plusDays(2).plusHours(1)));
+
+        assertEquals(List.of(2, 3), taskList.findUpcoming(now, 2));
+    }
+
+    @Test
+    void findUpcoming_nullOrNegativeRange_rejectsInvalidInput() {
+        TaskList taskList = new TaskList();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> taskList.findUpcoming(null, 7));
+        assertThrows(IllegalArgumentException.class,
+                () -> taskList.findUpcoming(LocalDateTime.of(2026, 9, 10, 12, 0), -1));
+    }
+
+    @Test
+    void findUpcoming_rangeOverflow_rejectsInvalidInput() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new TaskList().findUpcoming(LocalDateTime.MAX, 1));
     }
 }

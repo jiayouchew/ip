@@ -6,6 +6,7 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.DateTimeException;
 import java.util.Base64;
 
 import wobble.tasks.Deadline;
@@ -52,7 +53,7 @@ public class Storage {
                 } else {
                     taskList.add(task);
                 }
-            } catch (IllegalArgumentException exception) {
+            } catch (IllegalArgumentException | DateTimeException exception) {
                 System.out.println("Wobble diagnostic: skipped a corrupted saved task.");
             }
         }
