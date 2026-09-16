@@ -16,8 +16,8 @@ import wobble.tasks.Todo;
 public class Parser {
     private static final int DEFAULT_REMINDER_DAYS = 7;
     private static final int MAX_REMINDER_DAYS = 36500;
-    private static final String DATE_TIME_FORMAT_HINT =
-            "Try yyyy-MM-dd HH:mm, for example 2026-09-16 18:00.";
+    private static final String DATE_TIME_ERROR_HINT =
+            "Check that the date exists and the time is between 00:00 and 23:59. Type help for formats.";
 
     /** Creates a parser for Wobble commands. */
     public Parser() {
@@ -55,10 +55,10 @@ public class Parser {
                 throw new WobbleException("a deadline needs both a description and a /by date.");
             }
             try {
-                LocalDateTime deadline = DateTimeParser.parse(by);
+                LocalDateTime deadline = DateTimeParser.parseDeadline(by);
                 return new Deadline(description, deadline);
             } catch (DateTimeParseException exception) {
-                throw new WobbleException("the deadline date or time is invalid. " + DATE_TIME_FORMAT_HINT,
+                throw new WobbleException("the deadline date or time is invalid. " + DATE_TIME_ERROR_HINT,
                         false);
             }
         }
@@ -92,7 +92,7 @@ public class Parser {
                 }
                 return new Event(description, start, end);
             } catch (DateTimeParseException exception) {
-                throw new WobbleException("the event date or time is invalid. " + DATE_TIME_FORMAT_HINT,
+                throw new WobbleException("the event date or time is invalid. " + DATE_TIME_ERROR_HINT,
                         false);
             }
         }

@@ -97,15 +97,22 @@ public class MainWindow extends BorderPane {
         if (command.isEmpty()) {
             return;
         }
+        String lowerCaseCommand = command.toLowerCase(Locale.ROOT);
         dialogContainer.getChildren().add(DialogBox.userMessage(command));
         try {
             String response = execute(command);
-            if (command.toLowerCase(Locale.ROOT).equals("bye")) {
+            if (lowerCaseCommand.equals("bye")) {
                 DialogBox shutdownMessage = addShutdownMessage(response);
                 setOfflineAndExit(shutdownMessage);
-            } else if (command.toLowerCase(Locale.ROOT).equals("help")) {
+            } else if (lowerCaseCommand.equals("help")) {
                 addHelpMessage(response);
-            } else if (command.toLowerCase(Locale.ROOT).equals("list")) {
+            } else if (lowerCaseCommand.equals("list")
+                    || lowerCaseCommand.equals("reminders")
+                    || lowerCaseCommand.startsWith("reminders ")
+                    || lowerCaseCommand.equals("find")
+                    || lowerCaseCommand.startsWith("find ")
+                    || lowerCaseCommand.equals("due on")
+                    || lowerCaseCommand.startsWith("due on ")) {
                 addTaskListMessage(response);
             } else {
                 addBotMessage(response);
@@ -184,9 +191,7 @@ public class MainWindow extends BorderPane {
     private String listTasks() {
         StringBuilder result = new StringBuilder("Memory tray scan complete.\nHere are the tasks in your list:");
         for (int i = 1; i <= taskList.size(); i++) {
-            Task task = taskList.get(i);
-            result.append("\n").append(i).append(". ").append(taskSummary(task));
-            appendTaskDetails(result, task);
+            appendTaskToResult(result, i);
         }
         if (taskList.size() == 0) {
             result.append("\nNothing is wobbling on the tray yet.");
@@ -199,6 +204,13 @@ public class MainWindow extends BorderPane {
         String taskText = task.toString();
         int detailsStart = taskText.indexOf(" (");
         return detailsStart < 0 ? taskText : taskText.substring(0, detailsStart);
+    }
+
+    /** Adds one numbered task and its indented schedule details to a task response. */
+    private void appendTaskToResult(StringBuilder result, int taskNumber) {
+        Task task = taskList.get(taskNumber);
+        result.append("\n").append(taskNumber).append(". ").append(taskSummary(task));
+        appendTaskDetails(result, task);
     }
 
     /** Adds deadline or event timing on separate indented lines for easier scanning. */
@@ -251,6 +263,7 @@ public class MainWindow extends BorderPane {
                 + "  <date> HHmm       2026/09/15 1800\n"
                 + "  <date> HH:mm      2026.09.15 18:00\n"
                 + "Valid time range: 00:00 to 23:59 (24-hour clock)\n\n"
+                + "Date-only deadlines are due at the end of that date.\n\n"
                 + "EXAMPLE\n"
                 + "Add a report deadline:\n"
                 + "  deadline submit report /by 2026-09-15 1800\n\n"
@@ -267,7 +280,7 @@ public class MainWindow extends BorderPane {
         }
         StringBuilder result = new StringBuilder("Signal scan complete.\nHere are the matching tasks in your list:");
         for (int taskNumber : taskList.find(keyword)) {
-            result.append("\n").append(taskNumber).append(". ").append(taskList.get(taskNumber));
+            appendTaskToResult(result, taskNumber);
         }
         return result.toString();
     }
@@ -286,7 +299,7 @@ public class MainWindow extends BorderPane {
                         && !date.isAfter(event.getTo().toLocalDate());
             }
             if (occursOnDate) {
-                result.append("\n").append(i).append(". ").append(task);
+                appendTaskToResult(result, i);
                 matches++;
             }
         }
@@ -303,7 +316,7 @@ public class MainWindow extends BorderPane {
         List<Integer> upcomingTaskNumbers = taskList.findUpcoming(now, days);
         StringBuilder result = new StringBuilder("Radar sweep complete. Here are your upcoming reminders:");
         for (int taskNumber : upcomingTaskNumbers) {
-            result.append("\n").append(taskNumber).append(". ").append(taskList.get(taskNumber));
+            appendTaskToResult(result, taskNumber);
         }
         if (upcomingTaskNumbers.isEmpty()) {
             result.append("\nRadar clear. No upcoming reminders are wobbling in the next ")

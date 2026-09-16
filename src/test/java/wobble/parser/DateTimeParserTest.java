@@ -29,6 +29,18 @@ class DateTimeParserTest {
     }
 
     @Test
+    void parseDeadline_dateOnly_returnsEndOfDay() {
+        assertEquals(LocalDateTime.of(2026, 8, 27, 23, 59, 59, 999_999_999),
+                DateTimeParser.parseDeadline("2026-08-27"));
+    }
+
+    @Test
+    void parseDeadline_explicitTime_preservesTime() {
+        assertEquals(LocalDateTime.of(2026, 8, 27, 18, 30),
+                DateTimeParser.parseDeadline("2026-08-27 18:30"));
+    }
+
+    @Test
     void parse_threeDigitYearDottedDate_rejectsUnsupportedFormat() {
         assertThrows(DateTimeParseException.class,
                 () -> DateTimeParser.parse("999.08.27"));
@@ -208,5 +220,11 @@ class DateTimeParserTest {
     void format_oneMinuteAfterMidnight_includesTime() {
         assertEquals("Aug 27 2026 12:01 am",
                 DateTimeParser.format(LocalDateTime.of(2026, 8, 27, 0, 1)));
+    }
+
+    @Test
+    void format_endOfDayMarker_returnsFriendlyDate() {
+        assertEquals("Aug 27 2026",
+                DateTimeParser.format(LocalDateTime.of(2026, 8, 27, 23, 59, 59, 999_999_999)));
     }
 }

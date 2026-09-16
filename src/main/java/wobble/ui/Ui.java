@@ -50,6 +50,7 @@ public class Ui {
         System.out.println("  Time: <date> HHmm (e.g., 2026-09-15 1800)");
         System.out.println("  Time: <date> HH:mm (e.g., 2026-09-15 18:00)");
         System.out.println("  Valid time range: 00:00 to 23:59 (24-hour clock)");
+        System.out.println("  Date-only deadlines are due at the end of that date");
         System.out.println("  Example: deadline submit report /by 2026-09-15 1800");
         System.out.println();
         System.out.println("Exit:");

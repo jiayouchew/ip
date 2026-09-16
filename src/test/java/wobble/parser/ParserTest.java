@@ -43,6 +43,15 @@ class ParserTest {
     }
 
     @Test
+    void parseTask_dateOnlyDeadline_isDueAtEndOfDay() throws WobbleException {
+        Task task = parser.parseTask("deadline submit report /by 2099-08-27");
+
+        Deadline deadline = assertInstanceOf(Deadline.class, task);
+        assertEquals(LocalDateTime.of(2099, 8, 27, 23, 59, 59, 999_999_999), deadline.getBy());
+        assertEquals("[D][ ] submit report (by: Aug 27 2099)", deadline.toString());
+    }
+
+    @Test
     void parseTask_eventCommand_createsEventWithDateRange() throws WobbleException {
         Task task = parser.parseTask("event meeting /from 2026/08/27 /to 2026.08.28");
 
@@ -82,12 +91,12 @@ class ParserTest {
     }
 
     @Test
-    void parseTask_invalidDeadlineTime_showsSupportedTimeRange() {
+    void parseTask_invalidDeadlineTime_showsUsefulDiagnostic() {
         WobbleException exception = assertThrows(WobbleException.class,
                 () -> parser.parseTask("deadline submit report /by 2026-08-27 24:00"));
 
-        assertEquals("the deadline date or time is invalid. Try yyyy-MM-dd HH:mm, "
-                        + "for example 2026-09-16 18:00.",
+        assertEquals("the deadline date or time is invalid. Check that the date exists and the time is between "
+                        + "00:00 and 23:59. Type help for formats.",
                 exception.getMessage());
         assertFalse(exception.shouldSuggestCommand());
     }
@@ -162,12 +171,12 @@ class ParserTest {
     }
 
     @Test
-    void parseTask_invalidEventTime_showsSupportedTimeRange() {
+    void parseTask_invalidEventTime_showsUsefulDiagnostic() {
         WobbleException exception = assertThrows(WobbleException.class,
                 () -> parser.parseTask("event meeting /from 2026-08-27 2200 /to 2026-08-27 24:00"));
 
-        assertEquals("the event date or time is invalid. Try yyyy-MM-dd HH:mm, "
-                        + "for example 2026-09-16 18:00.",
+        assertEquals("the event date or time is invalid. Check that the date exists and the time is between "
+                        + "00:00 and 23:59. Type help for formats.",
                 exception.getMessage());
         assertFalse(exception.shouldSuggestCommand());
     }

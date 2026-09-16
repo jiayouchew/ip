@@ -93,6 +93,7 @@ same way.
 
 - `todo <description>` adds a task without a date or time.
 - `deadline <description> /by <date/time>` adds a task due at a specified date or time.
+  A date-only deadline is due at the end of that calendar day.
   Example: `deadline submit report /by 2026-09-15 18:00`.
 - `event <description> /from <start> /to <end>` adds a task spanning a time range.
   The end must be later than the start.
@@ -130,6 +131,10 @@ The ISO form is useful for deadline and event commands. Use a date-only value wi
 
 Wobble displays a date-only value as `Sep 15 2026` and a value with a time as
 `Sep 15 2026 6:00 pm`.
+
+For a deadline, a date-only value remains due until the end of that date. For example,
+`deadline report /by 2026-09-15` is not overdue during 15 September; use an explicit
+time such as `2026-09-15 18:00` when the deadline should be earlier.
 
 Past dates are allowed. An unfinished deadline or event with a past schedule is marked
 in the task display instead of being rejected.
