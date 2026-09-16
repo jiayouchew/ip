@@ -79,9 +79,8 @@ text.
 | `help` | Display the command reference | `help` |
 | `bye` | Shut down Wobble | `bye` |
 
-> [!TIP]
-> Wobble normalizes leading/trailing whitespace, repeated spaces, tabs, and command
-> capitalization. Descriptions cannot be empty or contain control characters.
+> **Tip:** Wobble normalizes leading/trailing whitespace, repeated spaces, tabs, and
+> command capitalization. Descriptions cannot be empty or contain control characters.
 > Duplicate tasks and invalid commands are rejected without changing the task list.
 
 Task numbers are one-based and come from the order shown by `list`. Use the current
@@ -89,7 +88,7 @@ number when marking, unmarking, deleting, or removing a task. The numbers can ch
 after a task is deleted. `remove` is an alias for `delete`; both commands behave the
 same way.
 
-<details>
+<details markdown="1">
 <summary>Command details and examples</summary>
 
 - `todo <description>` adds a task without a date or time.
@@ -125,9 +124,9 @@ The ISO form is useful for deadline and event commands. Use a date-only value wi
 `due on` because that command searches by calendar date. If a time is included with
 `due on`, Wobble uses only its date portion.
 
-> [!WARNING]
-> Times use the 24-hour clock from `00:00` through `23:59`. Non-existent calendar
-> dates such as `2027-02-30`, `24:00`, and AM/PM input such as `6:00 pm` are rejected.
+> **Warning:** Times use the 24-hour clock from `00:00` through `23:59`.
+> Non-existent calendar dates such as `2027-02-30`, `24:00`, and AM/PM input such as
+> `6:00 pm` are rejected.
 
 Wobble displays a date-only value as `Sep 15 2026` and a value with a time as
 `Sep 15 2026 6:00 pm`.
@@ -139,7 +138,7 @@ The format used for display is different from the format used for input. For exa
 enter `deadline report /by 2026-09-15 1800`, not
 `deadline report /by Sep 15 2026 6:00 pm`.
 
-<details>
+<details markdown="1">
 <summary>Common mistakes</summary>
 
 - Use `/by`, `/from`, and `/to` exactly once where required.
@@ -187,7 +186,7 @@ user-editing interface.
 
 ## FAQ
 
-<details>
+<details markdown="1">
 <summary>How do I move my tasks to another computer?</summary>
 
 Install Wobble on the other computer and copy `data/wobble.txt` to the corresponding
@@ -196,7 +195,7 @@ Close Wobble before copying the file.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary>Why is my task list empty?</summary>
 
 Check that Wobble was started from the directory containing the save file you intended
@@ -204,7 +203,7 @@ to use. Also check that `data/wobble.txt` exists and is readable.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary>Why did Wobble reject my command?</summary>
 
 Check the command marker, required parameters, task number, date, and time. For a
@@ -215,7 +214,7 @@ are only prompts; Wobble never executes the suggested command automatically.
 
 ## Troubleshooting
 
-<details>
+<details markdown="1">
 <summary>Java and startup problems</summary>
 
 If Gradle reports `invalid source release: 25`, or Java reports that a class was
@@ -242,7 +241,7 @@ intended project directory and that `data/wobble.txt` is readable.
 
 ## Building the fat JAR
 
-<details>
+<details markdown="1">
 <summary>Build and run the executable JAR</summary>
 
 From the project root, run:
@@ -263,7 +262,7 @@ JavaFX runtime dependencies for macOS, Windows, and Linux are included in the JA
 
 ## Verification and CI
 
-<details>
+<details markdown="1">
 <summary>Run local checks and view CI configuration</summary>
 
 Run the local checks with:
