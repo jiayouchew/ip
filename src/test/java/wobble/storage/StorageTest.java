@@ -3,9 +3,11 @@ package wobble.storage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.Base64;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -35,8 +37,8 @@ class StorageTest {
         Deadline deadline = new Deadline("submit report", LocalDateTime.of(2026, 8, 27, 18, 0));
         deadline.markAsDone();
         original.add(deadline);
-        original.add(new Event("meeting", LocalDateTime.of(2026, 8, 27, 14, 0),
-                LocalDateTime.of(2026, 8, 27, 16, 0)));
+        original.add(new Event("meeting", LocalDateTime.of(2099, 8, 27, 14, 0),
+                LocalDateTime.of(2099, 8, 27, 16, 0)));
 
         storage.save(original);
         TaskList loaded = storage.load();
@@ -44,7 +46,28 @@ class StorageTest {
         assertEquals(3, loaded.size());
         assertEquals("[T][ ] read | book", loaded.get(1).toString());
         assertEquals("[D][X] submit report (by: Aug 27 2026 6:00 pm)", loaded.get(2).toString());
-        assertEquals("[E][ ] meeting (from: Aug 27 2026 2:00 pm to: Aug 27 2026 4:00 pm)", loaded.get(3).toString());
+        assertEquals("[E][ ] meeting (from: Aug 27 2099 2:00 pm to: Aug 27 2099 4:00 pm)", loaded.get(3).toString());
         assertFalse(Files.readString(file).isBlank());
+    }
+
+    @Test
+    void load_corruptedAndDuplicateRecords_skipsInvalidEntries() throws Exception {
+        Path file = temporaryDirectory.resolve("wobble.txt");
+        String description = Base64.getEncoder().encodeToString(
+                "read book".getBytes(StandardCharsets.UTF_8));
+        String validRecord = "TODO|0|" + description;
+        String invalidEvent = "EVENT|0|" + description + "|"
+                + Base64.getEncoder().encodeToString("2026-08-27T14:00".getBytes(StandardCharsets.UTF_8))
+                + "|"
+                + Base64.getEncoder().encodeToString("2026-08-27T14:00".getBytes(StandardCharsets.UTF_8));
+        Files.writeString(file, validRecord + System.lineSeparator()
+                + validRecord + System.lineSeparator()
+                + invalidEvent + System.lineSeparator()
+                + "NOT_A_TASK|0|invalid" + System.lineSeparator());
+
+        TaskList loaded = new Storage(file).load();
+
+        assertEquals(1, loaded.size());
+        assertEquals("[T][ ] read book", loaded.get(1).toString());
     }
 }

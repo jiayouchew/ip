@@ -13,6 +13,12 @@ public class Task {
 
     /** Creates an unfinished task with the given description and type. */
     protected Task(String description, TaskType type) {
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("A task must have a non-empty description");
+        }
+        if (type == null) {
+            throw new IllegalArgumentException("A task must have a task type");
+        }
         assert description != null : "A task must have a description";
         assert type != null : "A task must have a task type";
         this.description = description;
@@ -50,9 +56,19 @@ public class Task {
         return type;
     }
 
+    /** Returns whether another task has the same type and description as this task. */
+    public boolean hasSameDetailsAs(Task other) {
+        return other != null && type == other.type && description.equals(other.description);
+    }
+
     /** Returns the common status portion of a task's display text. */
     @Override
     public String toString() {
-        return "[" + type.getIcon() + "][" + getStatusIcon() + "] " + description;
+        return getDisplayPrefix() + description;
+    }
+
+    /** Returns the common type and completion prefix used in task display text. */
+    protected String getDisplayPrefix() {
+        return "[" + type.getIcon() + "][" + getStatusIcon() + "] ";
     }
 }

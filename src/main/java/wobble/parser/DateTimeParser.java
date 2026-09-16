@@ -5,26 +5,30 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Locale;
 
 /** Parses and displays date/time text used by deadlines and events. */
 public final class DateTimeParser {
+    private static final DateTimeFormatter[] DATE_INPUT_FORMATS = {
+        strictFormatter("uuuu-MM-dd"),
+        strictFormatter("uuuu.MM.dd"),
+        strictFormatter("uuuu/MM/dd"),
+        strictFormatter("uuu.MM.dd"),
+        strictFormatter("uuu/MM/dd")
+    };
     private static final DateTimeFormatter[] INPUT_FORMATS = {
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm"),
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
-        DateTimeFormatter.ofPattern("yyyy.MM.dd HHmm"),
-        DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm"),
-        DateTimeFormatter.ofPattern("yyyy/MM/dd HHmm"),
-        DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"),
-        DateTimeFormatter.ofPattern("yyy.MM.dd HHmm"),
-        DateTimeFormatter.ofPattern("yyy.MM.dd HH:mm"),
-        DateTimeFormatter.ofPattern("yyy/MM/dd HHmm"),
-        DateTimeFormatter.ofPattern("yyy/MM/dd HH:mm"),
-        DateTimeFormatter.ofPattern("yyyy.MM.dd"),
-        DateTimeFormatter.ofPattern("yyyy/MM/dd"),
-        DateTimeFormatter.ofPattern("yyy.MM.dd"),
-        DateTimeFormatter.ofPattern("yyy/MM/dd"),
-        DateTimeFormatter.ISO_LOCAL_DATE_TIME
+        strictFormatter("uuuu-MM-dd HHmm"),
+        strictFormatter("uuuu-MM-dd HH:mm"),
+        strictFormatter("uuuu.MM.dd HHmm"),
+        strictFormatter("uuuu.MM.dd HH:mm"),
+        strictFormatter("uuuu/MM/dd HHmm"),
+        strictFormatter("uuuu/MM/dd HH:mm"),
+        strictFormatter("uuu.MM.dd HHmm"),
+        strictFormatter("uuu.MM.dd HH:mm"),
+        strictFormatter("uuu/MM/dd HHmm"),
+        strictFormatter("uuu/MM/dd HH:mm"),
+        DateTimeFormatter.ISO_LOCAL_DATE_TIME.withResolverStyle(ResolverStyle.STRICT)
     };
     private static final DateTimeFormatter DATE_OUTPUT = DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH);
     private static final DateTimeFormatter TIME_OUTPUT = DateTimeFormatter.ofPattern(
@@ -35,22 +39,16 @@ public final class DateTimeParser {
 
     /** Parses a date or date/time string into a LocalDateTime. */
     public static LocalDateTime parse(String value) {
+        if (value == null || value.isBlank()) {
+            throw new DateTimeParseException("A date/time value is required", "", 0);
+        }
         String text = value.trim();
-        try {
-            for (DateTimeFormatter format : new DateTimeFormatter[] {
-                    DateTimeFormatter.ISO_LOCAL_DATE,
-                    DateTimeFormatter.ofPattern("yyyy.MM.dd"),
-                    DateTimeFormatter.ofPattern("yyyy/MM/dd"),
-                    DateTimeFormatter.ofPattern("yyy.MM.dd"),
-                    DateTimeFormatter.ofPattern("yyy/MM/dd") }) {
-                try {
-                    return LocalDate.parse(text, format).atStartOfDay();
-                } catch (DateTimeParseException ignoredFormat) {
-                    // Try the next supported date format.
-                }
+        for (DateTimeFormatter format : DATE_INPUT_FORMATS) {
+            try {
+                return LocalDate.parse(text, format).atStartOfDay();
+            } catch (DateTimeParseException ignoredFormat) {
+                // Try the next supported date format.
             }
-        } catch (DateTimeParseException ignored) {
-            // Try date/time formats below.
         }
         for (DateTimeFormatter format : INPUT_FORMATS) {
             try {
@@ -62,8 +60,16 @@ public final class DateTimeParser {
         throw new DateTimeParseException("Unsupported date/time", text, 0);
     }
 
+    /** Creates a formatter that rejects invalid dates and times instead of adjusting them. */
+    private static DateTimeFormatter strictFormatter(String pattern) {
+        return DateTimeFormatter.ofPattern(pattern).withResolverStyle(ResolverStyle.STRICT);
+    }
+
     /** Formats a date/time for friendly display. */
     public static String format(LocalDateTime value) {
+        if (value == null) {
+            throw new IllegalArgumentException("A date/time value is required");
+        }
         if (value.toLocalTime().equals(LocalTime.MIDNIGHT)) {
             return value.format(DATE_OUTPUT);
         }

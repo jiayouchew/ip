@@ -2,8 +2,10 @@ package wobble.storage;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Base64;
 
 import wobble.tasks.Deadline;
@@ -24,6 +26,12 @@ public class Storage {
 
     /** Creates storage using a caller-provided path, useful for isolated tests. */
     public Storage(Path filePath) {
+        if (filePath == null) {
+            throw new IllegalArgumentException("The storage file path must not be null");
+        }
+        if (filePath.getFileName() == null) {
+            throw new IllegalArgumentException("The storage path must identify a file");
+        }
         this.filePath = filePath;
     }
 
@@ -38,7 +46,12 @@ public class Storage {
                 continue;
             }
             try {
-                taskList.add(deserialize(line));
+                Task task = deserialize(line);
+                if (taskList.containsEquivalent(task)) {
+                    System.out.println("Wobble diagnostic: skipped a duplicate saved task.");
+                } else {
+                    taskList.add(task);
+                }
             } catch (IllegalArgumentException exception) {
                 System.out.println("Wobble diagnostic: skipped a corrupted saved task.");
             }
@@ -48,6 +61,9 @@ public class Storage {
 
     /** Saves all tasks, creating the data folder if necessary. */
     public void save(TaskList taskList) throws IOException {
+        if (taskList == null) {
+            throw new IllegalArgumentException("The task list to save must not be null");
+        }
         if (filePath.getParent() != null) {
             Files.createDirectories(filePath.getParent());
         }
@@ -55,7 +71,27 @@ public class Storage {
         for (int i = 1; i <= taskList.size(); i++) {
             contents.append(serialize(taskList.get(i))).append(System.lineSeparator());
         }
-        Files.writeString(filePath, contents.toString(), StandardCharsets.UTF_8);
+        Path directory = filePath.getParent() == null ? Path.of(".") : filePath.getParent();
+        String temporaryFilePrefix = filePath.getFileName().toString();
+        if (temporaryFilePrefix.length() < 3) {
+            temporaryFilePrefix = "wob";
+        }
+        Path temporaryFile = Files.createTempFile(directory, temporaryFilePrefix, ".tmp");
+        boolean moved = false;
+        try {
+            Files.writeString(temporaryFile, contents.toString(), StandardCharsets.UTF_8);
+            try {
+                Files.move(temporaryFile, filePath, StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException exception) {
+                Files.move(temporaryFile, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+            moved = true;
+        } finally {
+            if (!moved) {
+                Files.deleteIfExists(temporaryFile);
+            }
+        }
     }
 
     /** Converts one task into the pipe-delimited persistence format. */

@@ -46,8 +46,10 @@ public class Ui {
         System.out.println("Dates and reminders:");
         System.out.println("  due on <date>");
         System.out.println("  reminders [number of days]");
-        System.out.println("  Date: yyyy-MM-dd, yyyy.MM.dd, or yyyy/MM/dd");
-        System.out.println("  Time: yyyy-MM-dd HHmm or yyyy-MM-dd HH:mm");
+        System.out.println("  Date: yyyy-MM-dd, yyyy.MM.dd, yyyy/MM/dd, yyy.MM.dd, or yyy/MM/dd");
+        System.out.println("  Time: <date> HHmm (e.g., 2026-09-15 1800)");
+        System.out.println("  Time: <date> HH:mm (e.g., 2026-09-15 18:00)");
+        System.out.println("  Valid time range: 00:00 to 23:59 (24-hour clock)");
         System.out.println("  Example: deadline submit report /by 2026-09-15 1800");
         System.out.println();
         System.out.println("Exit:");
@@ -66,7 +68,7 @@ public class Ui {
             System.out.println("Nothing is wobbling on the tray yet. A very tidy tray!");
         }
         for (int i = 1; i <= taskList.size(); i++) {
-            System.out.println(i + "." + taskList.get(i));
+            System.out.println(i + ". " + taskList.get(i));
         }
     }
 
@@ -78,7 +80,7 @@ public class Ui {
             System.out.println("No tasks match that keyword. Wobble searched everywhere!");
         }
         for (int taskNumber : matchingTaskNumbers) {
-            System.out.println(taskNumber + "." + taskList.get(taskNumber));
+            System.out.println(taskNumber + ". " + taskList.get(taskNumber));
         }
     }
 
@@ -92,7 +94,7 @@ public class Ui {
         }
         System.out.println("Radar sweep complete. Here are your upcoming reminders:");
         for (int taskNumber : taskNumbers) {
-            System.out.println(taskNumber + "." + taskList.get(taskNumber));
+            System.out.println(taskNumber + ". " + taskList.get(taskNumber));
         }
         System.out.println("Reminder window starts " + DateTimeParser.format(now) + ".");
     }
