@@ -27,6 +27,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import wobble.exceptions.WobbleException;
 import wobble.parser.CommandSuggester;
+import wobble.parser.DateTimeParser;
 import wobble.parser.Parser;
 import wobble.storage.Storage;
 import wobble.tasks.Deadline;
@@ -104,6 +105,8 @@ public class MainWindow extends BorderPane {
                 setOfflineAndExit(shutdownMessage);
             } else if (command.toLowerCase(Locale.ROOT).equals("help")) {
                 addHelpMessage(response);
+            } else if (command.toLowerCase(Locale.ROOT).equals("list")) {
+                addTaskListMessage(response);
             } else {
                 addBotMessage(response);
             }
@@ -181,12 +184,31 @@ public class MainWindow extends BorderPane {
     private String listTasks() {
         StringBuilder result = new StringBuilder("Memory tray scan complete.\nHere are the tasks in your list:");
         for (int i = 1; i <= taskList.size(); i++) {
-            result.append("\n").append(i).append(". ").append(taskList.get(i));
+            Task task = taskList.get(i);
+            result.append("\n").append(i).append(". ").append(taskSummary(task));
+            appendTaskDetails(result, task);
         }
         if (taskList.size() == 0) {
             result.append("\nNothing is wobbling on the tray yet.");
         }
         return result.toString();
+    }
+
+    /** Returns the task prefix and description without its date details. */
+    private static String taskSummary(Task task) {
+        String taskText = task.toString();
+        int detailsStart = taskText.indexOf(" (");
+        return detailsStart < 0 ? taskText : taskText.substring(0, detailsStart);
+    }
+
+    /** Adds deadline or event timing on separate indented lines for easier scanning. */
+    private static void appendTaskDetails(StringBuilder result, Task task) {
+        if (task instanceof Deadline deadline) {
+            result.append("\n    By: ").append(DateTimeParser.format(deadline.getBy()));
+        } else if (task instanceof Event event) {
+            result.append("\n    From: ").append(DateTimeParser.format(event.getFrom()))
+                    .append("\n    To: ").append(DateTimeParser.format(event.getTo()));
+        }
     }
 
     /** Returns a single-card, readable guide to Wobble's commands and input formats. */
@@ -364,6 +386,11 @@ public class MainWindow extends BorderPane {
     /** Adds the help guide as one structured card with readable internal headings. */
     private void addHelpMessage(String message) {
         dialogContainer.getChildren().add(DialogBox.helpMessage(message));
+    }
+
+    /** Adds the task list as separated, lightly padded task rows. */
+    private void addTaskListMessage(String message) {
+        dialogContainer.getChildren().add(DialogBox.taskListMessage(message));
     }
 
     /** Adds an error response with a visual treatment distinct from normal replies. */

@@ -28,6 +28,7 @@ public class DialogBox extends HBox {
     private static final double MESSAGE_HORIZONTAL_SPACE = 32;
     private static final String REGULAR_TEXT_STYLE = "-fx-font-style: normal;";
     private static final Pattern TASK_STATUS_TAG_PATTERN = Pattern.compile("\\[(OVERDUE|PAST)\\]");
+    private static final Pattern TASK_LINE_PATTERN = Pattern.compile("^\\d+\\. .+");
     private static final Image WOBBLE_AVATAR = loadImage("/images/wobble-avatar.png");
     private static final Image USER_AVATAR = loadImage("/images/user-avatar.png");
     private final Label messageLabel;
@@ -91,6 +92,12 @@ public class DialogBox extends HBox {
                 WOBBLE_AVATAR, "wobble-avatar");
     }
 
+    /** Creates one bot card with separated, lightly padded task rows. */
+    public static DialogBox taskListMessage(String text) {
+        return new DialogBox(createTaskListContent(text), "bot-message", Pos.TOP_LEFT,
+                WOBBLE_AVATAR, "wobble-avatar");
+    }
+
     /** Creates the structured content used inside the single help response card. */
     private static VBox createHelpContent(String text) {
         VBox content = new VBox(4);
@@ -110,6 +117,40 @@ public class DialogBox extends HBox {
                 lineLabel.getStyleClass().add("help-description");
             }
             content.getChildren().add(lineLabel);
+        }
+        return content;
+    }
+
+    /** Converts a list response into readable headings, task rows, and detail lines. */
+    private static VBox createTaskListContent(String text) {
+        VBox content = new VBox(6);
+        content.getStyleClass().add("task-list-content");
+        VBox currentTaskRow = null;
+        for (String line : text.split("\\R")) {
+            if (line.isBlank()) {
+                continue;
+            }
+            if (TASK_LINE_PATTERN.matcher(line).matches()) {
+                currentTaskRow = new VBox(2);
+                currentTaskRow.getStyleClass().add("task-list-row");
+                TextFlow taskLine = createStyledMessageContent(line);
+                taskLine.getStyleClass().add("task-line");
+                currentTaskRow.getChildren().add(taskLine);
+                content.getChildren().add(currentTaskRow);
+            } else if (line.startsWith("    ") && currentTaskRow != null) {
+                Label details = new Label(line.trim());
+                details.setWrapText(true);
+                details.setStyle(REGULAR_TEXT_STYLE);
+                details.getStyleClass().add("task-details");
+                currentTaskRow.getChildren().add(details);
+            } else {
+                Label heading = new Label(line.trim());
+                heading.setWrapText(true);
+                heading.setStyle(REGULAR_TEXT_STYLE);
+                heading.getStyleClass().add(line.startsWith("Nothing")
+                        ? "task-list-empty" : "task-list-heading");
+                content.getChildren().add(heading);
+            }
         }
         return content;
     }

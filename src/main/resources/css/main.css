@@ -23,7 +23,11 @@
 .task-status-tag,
 .help-heading,
 .help-description,
-.help-command {
+.help-command,
+.task-list-heading,
+.task-list-empty,
+.task-line,
+.task-details {
     -fx-font-style: normal;
     -fx-font-weight: normal;
 }
@@ -243,4 +247,41 @@
     -fx-font-style: normal;
     -fx-font-weight: normal;
     -fx-text-fill: #1e5046;
+}
+
+.task-list-content {
+    -fx-spacing: 7;
+}
+
+.task-list-heading {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2f6f62;
+}
+
+.task-list-row {
+    -fx-padding: 6 8;
+    -fx-background-color: #f4f8f6;
+    -fx-background-radius: 8;
+    -fx-border-color: #e1ebe7;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.task-line {
+    -fx-font-size: 13px;
+    -fx-text-fill: #2f4d44;
+}
+
+.task-details {
+    -fx-padding: 0 0 0 20;
+    -fx-font-family: "Menlo", "Monaco", monospace;
+    -fx-font-size: 11px;
+    -fx-text-fill: #607a70;
+}
+
+.task-list-empty {
+    -fx-padding: 4 0 0 0;
+    -fx-font-size: 13px;
+    -fx-text-fill: #607a70;
 }

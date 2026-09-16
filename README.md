@@ -1,80 +1,91 @@
-# Wobble project template
+# Wobble
 
-This is a project template for a greenfield Java project named _Wobble_. Given below are instructions on how to use it.
+Wobble is a JavaFX task companion with a small robotic personality. It stores ToDos,
+deadlines, and events, then lets you search, review, complete, and remove them. Tasks
+are saved automatically in `data/wobble.txt` relative to the directory from which
+Wobble is started.
 
-## Setting up in Intellij
+The application starts with the JavaFX GUI. The complete command reference is in the
+[Wobble User Guide](docs/README.md), and the GUI also displays it when you enter `help`.
 
-Prerequisites: JDK 25, update Intellij to the most recent version.
+## Requirements
 
-1. Open Intellij (if you are not in the welcome screen, click `File` > `Close Project` to close the existing project first)
-1. Open the project into Intellij as follows:
-   1. Click `Open`.
-   1. Select the project directory, and click `OK`.
-   1. If there are any further prompts, accept the defaults.
-1. Configure the project to use **JDK 25** (not other versions) as explained in [here](https://www.jetbrains.com/help/idea/sdk.html#set-up-jdk).<br>
-   In the same dialog, set the **Project language level** field to the `SDK default` option.
-   1. After that, locate the `src/main/java/wobble/Wobble.java` file, right-click it, and choose `Run wobble.Wobble.main()` (if the code editor is showing compile errors, try restarting the IDE). Type `help` to see every command format. Wobble stores tasks, displays them with `list`, and exits when you type `bye`.
+- JDK 25
+- IntelliJ IDEA with Gradle support (for IDE development)
+- A terminal for running the Gradle wrapper commands below
 
-   Wobble saves tasks automatically to the relative file `data/wobble.txt` and loads them
-   again the next time it starts. The `data` folder is created automatically if needed.
-   ```
-   ==============================
-     WOBBLE // Systems Online
-   ==============================
-   Hello! I'm Wobble.
-   Beep boop! Your friendly little robot companion is ready.
-   My memory tray is polished and ready for tasks.
-   What can I do for you?
-   ==============================
-   todo read book
-   Beep boop! Got it. I've added this task to my memory tray:
-     [T][ ] read book
-   Now you have 1 tasks in the list.
-   deadline return book /by 2019-12-02 1800
-   Beep boop! Got it. I've added this task to my memory tray:
-     [D][ ] return book (by: Dec 2 2019 6:00 pm)
-   Now you have 2 tasks in the list.
-   list
-   Scanning my task tray... whirr, beep!
-   1.[T][ ] read book
-   2.[D][ ] return book (by: Dec 2 2019 6:00 pm)
-   mark 2
-   Nice! I've marked this task as done:
-     [D][X] return book (by: Dec 2 2019 6:00 pm)
-   delete 2
-   Noted. I've removed this task:
-     [D][X] return book (by: Dec 2 2019 6:00 pm)
-   Now you have 1 tasks in the list.
-   bye
-   Bye. Hope to see you again soon!
-   Wobble powering down... beep!
-   ==============================
-   ```
+The Gradle wrapper downloads the required Gradle version automatically, so a separate
+Gradle installation is not required.
 
-   Invalid commands receive a diagnostic message without changing the task list:
+## Run Wobble
 
-   ```
-   todo
-   Wobble diagnostic: a todo description cannot be empty.
-   blah
-   Wobble diagnostic: I do not know that command. Try todo, deadline, event, list, mark, unmark, delete, or bye.
-   ```
+### From IntelliJ IDEA
 
-**Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
+1. Open this repository as a Gradle project.
+2. Set the project SDK and the Gradle JVM to JDK 25. In IntelliJ, the Gradle JVM is
+   under `Settings` or `Preferences` > `Build, Execution, Deployment` > `Build Tools`
+   > `Gradle`.
+3. Run `wobble.gui.Launcher` to start the JavaFX interface. The window can be resized;
+   enter a command in the input field and press `Enter` or click `Send`.
+4. Enter `help` to display the supported commands and date/time formats. Enter `bye`
+   to run Wobble's shutdown sequence and close the application.
 
-## Creating and running a fat JAR
+For the console-only interface, run `wobble.Wobble.main()` from IntelliJ. Both
+interfaces use the same task file and command behavior.
 
-From the project root, create the executable fat JAR with:
+### From the terminal
+
+Check that the terminal is using Java 25 before running Gradle:
 
 ```bash
-./gradlew shadowJar
+java -version
 ```
 
-The output is created at `build/libs/wobble.jar`. Run it with:
+On macOS with SDKMAN, switch Java versions in the same terminal session if necessary:
+
+```bash
+sdk use java 25.0.3.fx-zulu
+java -version
+```
+
+Start the GUI with:
+
+```bash
+./gradlew run
+```
+
+## Build and test
+
+Run the full local verification suite:
+
+```bash
+./gradlew check
+```
+
+This compiles the project, runs the JUnit tests, and runs Checkstyle on production and
+test code.
+
+## Build and run the fat JAR
+
+Create a fresh executable fat JAR containing the JavaFX runtime dependencies:
+
+```bash
+./gradlew clean shadowJar
+```
+
+The output is `build/libs/wobble.jar`. Run it from the project root with Java 25:
 
 ```bash
 java -jar build/libs/wobble.jar
 ```
 
-The JAR includes the application classes and runtime dependencies, and its entry point
-is configured as `wobble.gui.Launcher` and starts the JavaFX GUI.
+The JAR entry point is `wobble.gui.Launcher`. JavaFX is bundled for macOS, Windows,
+and Linux; the JAR should therefore be run with a Java 25 runtime on the target machine.
+
+## Continuous integration
+
+GitHub Actions is configured in `.github/workflows/wobble.yml`. Every push and pull
+request runs `./gradlew check` on Ubuntu, macOS, and Windows using Java 25.
+
+For command formats, validation rules, persistence behavior, and examples, see the
+[Wobble User Guide](docs/README.md).
