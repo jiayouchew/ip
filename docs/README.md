@@ -79,180 +79,57 @@ text.
 | `help` | Display the command reference | `help` |
 | `bye` | Shut down Wobble | `bye` |
 
-Wobble normalizes leading/trailing whitespace, repeated spaces, tabs, and command
-capitalization. A command still needs the required parameters in the formats above.
-Descriptions cannot be empty or contain control characters. Duplicate tasks are
-rejected, and invalid commands do not change the task list.
+> [!TIP]
+> Wobble normalizes leading/trailing whitespace, repeated spaces, tabs, and command
+> capitalization. Descriptions cannot be empty or contain control characters.
+> Duplicate tasks and invalid commands are rejected without changing the task list.
 
 Task numbers are one-based and come from the order shown by `list`. Use the current
 number when marking, unmarking, deleting, or removing a task. The numbers can change
 after a task is deleted. `remove` is an alias for `delete`; both commands behave the
 same way.
 
-The `find` command searches for a case-insensitive substring in task descriptions. It
-can return completed, overdue, and past tasks. The `due on` command displays deadlines
-whose due date matches the requested date and events that include that date; completed
-tasks are included if they match. The `reminders` command displays only unfinished
-deadlines and events in its reminder window.
+<details>
+<summary>Command details and examples</summary>
 
-### Adding a ToDo: `todo`
+- `todo <description>` adds a task without a date or time.
+- `deadline <description> /by <date/time>` adds a task due at a specified date or time.
+  Example: `deadline submit report /by 2026-09-15 18:00`.
+- `event <description> /from <start> /to <end>` adds a task spanning a time range.
+  The end must be later than the start.
+- `list` displays every task and its current number.
+- `find <keyword>` searches descriptions for a case-insensitive substring and preserves
+  the original task numbers. Example: `find report`.
+- `mark <number>` completes a task; `unmark <number>` reopens it.
+- `delete <number>` removes a task. `remove <number>` is an alias.
+- `due on <date>` displays deadlines on that date and events that include it. Use a
+  date-only value; if a time is supplied, Wobble uses only its date portion.
+- `reminders` shows unfinished scheduled tasks in the default 7-day window.
+  `reminders <days>` selects a window from 0 to 36,500 days.
+- `help` displays the command guide; `bye` runs the shutdown sequence and exits.
 
-Adds a task without a date or time.
-
-Format: `todo <description>`
-
-Example:
-
-```text
-todo read book
-```
-
-### Adding a deadline: `deadline`
-
-Adds a task that is due at a specified date or time.
-
-Format: `deadline <description> /by <date/time>`
-
-Example:
-
-```text
-deadline submit report /by 2026-09-15 18:00
-```
-
-Put the description before `/by`, and use `/by` exactly once.
-
-### Adding an event: `event`
-
-Adds a task that spans a start and end date/time.
-
-Format: `event <description> /from <start> /to <end>`
-
-Example:
-
-```text
-event team meeting /from 2026-09-15 14:00 /to 2026-09-15 16:00
-```
-
-The end must be later than the start. Use `/from` and `/to` exactly once each.
-
-### Listing tasks: `list`
-
-Displays every task and its current one-based task number.
-
-Format: `list`
-
-### Finding tasks: `find`
-
-Searches task descriptions for a case-insensitive substring. The original task numbers
-are preserved in the results. Completed, overdue, and past tasks can all be returned.
-
-Format: `find <keyword>`
-
-Examples:
-
-```text
-find report
-find team meeting
-```
-
-### Completing a task: `mark`
-
-Marks the selected task as done.
-
-Format: `mark <number>`
-
-Example: `mark 2`
-
-### Reopening a task: `unmark`
-
-Marks the selected task as not done again.
-
-Format: `unmark <number>`
-
-Example: `unmark 2`
-
-### Deleting a task: `delete` or `remove`
-
-Removes the selected task from the memory tray. `remove` is an alternative name for
-the same operation.
-
-Formats: `delete <number>` or `remove <number>`
-
-Examples:
-
-```text
-delete 2
-remove 2
-```
-
-### Viewing tasks on a date: `due on`
-
-Displays deadlines whose due date matches the requested date and events that include
-that date. It searches by calendar date, so use a date-only value.
-
-Format: `due on <date>`
-
-Example: `due on 2026-09-15`
-
-If a date/time is supplied, Wobble uses only its date portion. Completed matching tasks
-are included in the results.
-
-### Viewing reminders: `reminders`
-
-Shows unfinished deadlines and events within a reminder window. With no argument, the
-window defaults to 7 days. A custom window can be from 0 to 36,500 days.
-
-Formats: `reminders` or `reminders <days>`
-
-Examples:
-
-```text
-reminders
-reminders 14
-```
-
-The window starts at the beginning of today and ends the specified number of days from
-the current time. Deadlines are scheduled by their due time; events are scheduled by
-their start time. A value of `0` searches from the beginning of today through the
-current time.
-
-### Viewing this guide: `help`
-
-Displays a compact command and date/time reference in the GUI or console.
-
-Format: `help`
-
-### Exiting Wobble: `bye`
-
-Runs the robot-themed shutdown sequence and exits the application.
-
-Format: `bye`
+</details>
 
 ## Date and time formats
 
 Use a 24-hour clock. The recommended format is `yyyy-MM-dd HH:mm`, for example
 `2026-09-15 18:00`.
 
-Supported date-only formats are:
+| Input type | Format | Example |
+| --- | --- | --- |
+| Date only | `yyyy-MM-dd`, `yyyy.MM.dd`, or `yyyy/MM/dd` | `2026-09-15` |
+| Date and time | `<date> HHmm` or `<date> HH:mm` | `2026/09/15 1800` |
+| ISO date and time | `yyyy-MM-ddTHH:mm[:ss]` | `2026-09-15T18:00` |
 
-- `yyyy-MM-dd`, for example `2026-09-15`
-- `yyyy.MM.dd`, for example `2026.09.15`
-- `yyyy/MM/dd`, for example `2026/09/15`
+The ISO form is useful for deadline and event commands. Use a date-only value with
+`due on` because that command searches by calendar date. If a time is included with
+`due on`, Wobble uses only its date portion.
 
-For a date and time, append either `HHmm` or `HH:mm` to a supported date, for example:
+> [!WARNING]
+> Times use the 24-hour clock from `00:00` through `23:59`. Non-existent calendar
+> dates such as `2027-02-30`, `24:00`, and AM/PM input such as `6:00 pm` are rejected.
 
-- `2026/09/15 1800`
-- `2026.09.15 18:00`
-
-ISO local date-time input such as `2026-09-15T18:00` or
-`2026-09-15T18:00:00` is also accepted, although the formats above are recommended
-for command input. The ISO form is useful for deadlines and events; use a date-only
-value with `due on` because that command searches by calendar date. If a time is
-included with `due on`, Wobble uses only its date portion.
-
-Valid times range from `00:00` to `23:59`. Non-existent calendar dates such as
-`2027-02-30`, and invalid times such as `24:00`, are rejected with a diagnostic.
-Date-only values are displayed as `Sep 15 2026`; values with a time are displayed as
+Wobble displays a date-only value as `Sep 15 2026` and a value with a time as
 `Sep 15 2026 6:00 pm`.
 
 Past dates are allowed. An unfinished deadline or event with a past schedule is marked
@@ -262,7 +139,8 @@ The format used for display is different from the format used for input. For exa
 enter `deadline report /by 2026-09-15 1800`, not
 `deadline report /by Sep 15 2026 6:00 pm`.
 
-## Common mistakes
+<details>
+<summary>Common mistakes</summary>
 
 - Use `/by`, `/from`, and `/to` exactly once where required.
 - Put the description before the date marker, for example
@@ -274,6 +152,8 @@ enter `deadline report /by 2026-09-15 1800`, not
   accepted as command input.
 - If a command is misspelled or its format is invalid, Wobble displays a diagnostic
   and may suggest a corrected command. The original command is not executed.
+
+</details>
 
 ## Reminders and status tags
 
@@ -307,24 +187,36 @@ user-editing interface.
 
 ## FAQ
 
-### How do I move my tasks to another computer?
+<details>
+<summary>How do I move my tasks to another computer?</summary>
 
 Install Wobble on the other computer and copy `data/wobble.txt` to the corresponding
 `data/wobble.txt` path relative to the directory from which Wobble will be started.
 Close Wobble before copying the file.
 
-### Why is my task list empty?
+</details>
+
+<details>
+<summary>Why is my task list empty?</summary>
 
 Check that Wobble was started from the directory containing the save file you intended
 to use. Also check that `data/wobble.txt` exists and is readable.
 
-### Why did Wobble reject my command?
+</details>
+
+<details>
+<summary>Why did Wobble reject my command?</summary>
 
 Check the command marker, required parameters, task number, date, and time. For a
 misspelled or unrecognized command, Wobble may display a suggested command. Suggestions
 are only prompts; Wobble never executes the suggested command automatically.
 
+</details>
+
 ## Troubleshooting
+
+<details>
+<summary>Java and startup problems</summary>
 
 If Gradle reports `invalid source release: 25`, or Java reports that a class was
 compiled by a more recent version, the current terminal or IDE is using the wrong
@@ -346,7 +238,12 @@ java -version
 If Wobble starts with an empty tray unexpectedly, check that you launched it from the
 intended project directory and that `data/wobble.txt` is readable.
 
+</details>
+
 ## Building the fat JAR
+
+<details>
+<summary>Build and run the executable JAR</summary>
 
 From the project root, run:
 
@@ -362,7 +259,12 @@ java -jar build/libs/wobble.jar
 
 JavaFX runtime dependencies for macOS, Windows, and Linux are included in the JAR.
 
+</details>
+
 ## Verification and CI
+
+<details>
+<summary>Run local checks and view CI configuration</summary>
 
 Run the local checks with:
 
@@ -372,3 +274,5 @@ Run the local checks with:
 
 This runs JUnit tests and Checkstyle. GitHub Actions repeats the check on Ubuntu,
 macOS, and Windows for every push and pull request using Java 25.
+
+</details>
