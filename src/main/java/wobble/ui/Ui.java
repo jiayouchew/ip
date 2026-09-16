@@ -10,6 +10,9 @@ import wobble.tasks.TaskList;
 
 /** Handles all interaction between Wobble and the user. */
 public class Ui {
+    private static final int SHUTDOWN_DOT_COUNT = 10;
+    private static final long SHUTDOWN_DOT_DELAY_MILLIS = 60;
+
     /** Displays Wobble's welcome message. */
     public void showWelcome() {
         System.out.println("==============================");
@@ -17,14 +20,15 @@ public class Ui {
         System.out.println("==============================");
         System.out.println("Hello! I'm Wobble.");
         System.out.println("Beep boop! Your friendly little robot companion is ready.");
-        System.out.println("My memory tray is polished and ready for tasks.");
-        System.out.println("What can I do for you?");
+        System.out.println("Memory tray calibrated. Awaiting your next mission.");
+        System.out.println("What shall we remember?");
         System.out.println("==============================");
     }
 
     /** Displays the command formats supported by Wobble. */
     public void showHelp() {
-        System.out.println("Wobble command guide");
+        System.out.println("WOBBLE COMMAND DECK // QUICK REFERENCE");
+        System.out.println("Pick a command below. Type help again whenever you need a systems check.");
         System.out.println();
         System.out.println("Add tasks:");
         System.out.println("  todo <description>");
@@ -57,7 +61,7 @@ public class Ui {
 
     /** Displays a task list. */
     public void showTasks(TaskList taskList) {
-        System.out.println("Scanning my task tray... whirr, beep!");
+        System.out.println("Whirr... memory tray scan complete.");
         if (taskList.size() == 0) {
             System.out.println("Nothing is wobbling on the tray yet. A very tidy tray!");
         }
@@ -68,7 +72,7 @@ public class Ui {
 
     /** Displays tasks matching a keyword and preserves their original list numbers. */
     public void showMatchingTasks(TaskList taskList, String keyword) {
-        System.out.println("Here are the matching tasks in your list:");
+        System.out.println("Signal scan complete. Here are the matching tasks in your list:");
         List<Integer> matchingTaskNumbers = taskList.find(keyword);
         if (matchingTaskNumbers.isEmpty()) {
             System.out.println("No tasks match that keyword. Wobble searched everywhere!");
@@ -82,10 +86,11 @@ public class Ui {
     public void showReminders(TaskList taskList, List<Integer> taskNumbers,
             LocalDateTime now, int days) {
         if (taskNumbers.isEmpty()) {
-            System.out.println("No upcoming reminders are wobbling in the next " + days + " days.");
+            System.out.println("Radar clear. No upcoming reminders are wobbling in the next "
+                    + days + " days.");
             return;
         }
-        System.out.println("Here are your upcoming reminders:");
+        System.out.println("Radar sweep complete. Here are your upcoming reminders:");
         for (int taskNumber : taskNumbers) {
             System.out.println(taskNumber + "." + taskList.get(taskNumber));
         }
@@ -99,15 +104,41 @@ public class Ui {
 
     /** Displays the successful task-addition message. */
     public void showTaskAdded(Task task, int taskCount) {
-        System.out.println("Beep boop! Got it. I've added this task to my memory tray:");
+        System.out.println("Beep boop! Task docked in my memory tray:");
         System.out.println("  " + task);
+        System.out.println("I'll keep an eye on it.");
         System.out.println("Now you have " + taskCount + " tasks in the list.");
     }
 
     /** Displays the goodbye message. */
     public void showGoodbye() {
-        System.out.println("Bye. Hope to see you again soon!");
-        System.out.println("Wobble powering down... beep!");
+        System.out.println("Bye, human! Wobble is signing off.");
+        System.out.println("SHUTDOWN_SEQUENCE :: START");
+        showShutdownStep("save memory");
+        showShutdownStep("lock task tray");
+        showShutdownStep("disconnect");
+        System.out.println("STATUS :: OFFLINE // beep... boop.");
+        System.out.println("See you on the next boot, human.");
         System.out.println("==============================");
+    }
+
+    /** Displays one shutdown operation with progressive dots before confirming completion. */
+    private void showShutdownStep(String operation) {
+        System.out.print("> " + operation + " ");
+        for (int dotCount = 0; dotCount < SHUTDOWN_DOT_COUNT; dotCount++) {
+            System.out.print(".");
+            System.out.flush();
+            pauseForShutdownDot();
+        }
+        System.out.println(" OK");
+    }
+
+    /** Pauses briefly so the shutdown progress is visible without delaying the app excessively. */
+    private void pauseForShutdownDot() {
+        try {
+            Thread.sleep(SHUTDOWN_DOT_DELAY_MILLIS);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

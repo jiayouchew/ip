@@ -24,6 +24,7 @@ public class DialogBox extends HBox {
     private static final double MESSAGE_HORIZONTAL_SPACE = 32;
     private static final Image WOBBLE_AVATAR = loadImage("/images/wobble-avatar.png");
     private static final Image USER_AVATAR = loadImage("/images/user-avatar.png");
+    private final Label messageLabel;
 
     private DialogBox(String text, String styleClass, Pos alignment, Image avatar,
             String avatarStyleClass) {
@@ -32,6 +33,7 @@ public class DialogBox extends HBox {
 
     private DialogBox(Region message, String styleClass, Pos alignment, Image avatar,
             String avatarStyleClass) {
+        messageLabel = message instanceof Label ? (Label) message : null;
         message.getStyleClass().add(styleClass);
         StackPane avatarFrame = createAvatarFrame(avatar, avatarStyleClass);
         setAlignment(alignment);
@@ -61,6 +63,18 @@ public class DialogBox extends HBox {
     /** Creates a Wobble error message with styling that draws attention. */
     public static DialogBox errorMessage(String text) {
         return new DialogBox(text, "error-message", Pos.TOP_LEFT, WOBBLE_AVATAR, "wobble-avatar");
+    }
+
+    /** Creates a robot-console message shown while Wobble powers down. */
+    public static DialogBox shutdownMessage(String text) {
+        return new DialogBox(text, "shutdown-message", Pos.TOP_LEFT, WOBBLE_AVATAR, "wobble-avatar");
+    }
+
+    /** Updates the text in a shutdown card while Wobble's power-down sequence is running. */
+    void updateShutdownMessage(String text) {
+        if (messageLabel != null) {
+            messageLabel.setText(text);
+        }
     }
 
     /** Creates one bot card with individually styled help headings and command formats. */
