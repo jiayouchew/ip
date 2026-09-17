@@ -15,6 +15,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import wobble.parser.DateTimeParser;
 import wobble.tasks.Deadline;
 import wobble.tasks.TaskList;
 import wobble.tasks.Todo;
@@ -127,7 +128,7 @@ class UiTest {
 
     @Test
     void showReminders_withResults_showsTasksAndWindowStart() {
-        LocalDateTime now = LocalDateTime.of(2026, 9, 16, 12, 0);
+        LocalDateTime now = LocalDateTime.now().plusDays(2);
         TaskList taskList = new TaskList();
         taskList.add(new Deadline("submit report", now.plusDays(1)));
 
@@ -135,7 +136,7 @@ class UiTest {
 
         assertTrue(output.toString().contains("upcoming reminders"));
         assertTrue(output.toString().contains("1. [D][ ] submit report"));
-        assertTrue(output.toString().contains("Reminder window starts Sep 16 2026 12:00 pm."));
+        assertTrue(output.toString().contains("Reminder window starts " + DateTimeParser.format(now) + "."));
     }
 
     @Test
